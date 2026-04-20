@@ -8,7 +8,7 @@
         SELECT u.sys02_user_id as id, 
                u.sys02_company_id as company_id,
                u.sys02_login_id as user_id, 
-               u.sys02_passwd as user_pw, 
+               to_decrypts(u.sys02_passwd) as user_pw, 
                u.sys02_kor_nm as user_nm
         FROM sys02_user u
         JOIN sys01_company c ON u.sys02_company_id = c.sys01_company_id

@@ -24,7 +24,7 @@ const omsTheme = themeAlpine.withPart(colorSchemeDarkBlue).withParams({
   fontFamily: 'inherit',
 })
 
-interface BaseGridProps<TData = any> {
+interface BaseGridProps<TData = unknown> {
   rowData?: TData[] | null
   columnDefs: ColDef<TData>[]
   onGridReady?: (event: GridReadyEvent<TData>) => void
@@ -36,7 +36,7 @@ interface BaseGridProps<TData = any> {
 /**
  * OMS Common AgGrid Wrapper
  */
-export default function BaseGrid<TData = any>({
+export default function BaseGrid<TData = unknown>({
   rowData,
   columnDefs,
   onGridReady,

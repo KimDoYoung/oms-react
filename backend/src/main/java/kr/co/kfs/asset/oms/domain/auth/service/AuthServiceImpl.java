@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -27,10 +29,26 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public TokenResponseDto login(LoginRequestDto request) {
+        log.debug("Login attempt - Company: {}, User: {}", request.getCompanyCode(), request.getUserId());
+        
         User user = userMapper.findByUserId(request.getCompanyCode(), request.getUserId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다."));
+                .orElseThrow(() -> {
+                    log.warn("Login failed: user not found for {}/{}", request.getCompanyCode(), request.getUserId());
+                    return new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다.");
+                });
 
-        if (!user.getUserPw().equals(request.getUserPw())) {
+        String inputPw = request.getUserPw();
+        String dbPw = user.getUserPw() != null ? user.getUserPw().trim() : "";
+
+        log.debug("Password Check - Input: [{}], DB(Decrypted): [{}]", inputPw, dbPw);
+        log.debug("Length Check - Input len: {}, DB len: {}", inputPw.length(), dbPw.length());
+
+        // 1. DB에서 복호화되어 넘어온 평문과 직접 비교 (가장 우선)
+        // 2. 만약 복호화되지 않은 원본 해시일 경우를 대비해 MD5 비교도 유지
+        if (inputPw.equals(dbPw) || verifyMd5(inputPw, dbPw)) {
+            log.info("Login success: {} (Company: {})", user.getUserId(), request.getCompanyCode());
+        } else {
+            log.warn("Login failed: password mismatch for user {}", request.getUserId());
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다.");
         }
 
@@ -45,8 +63,23 @@ public class AuthServiceImpl implements AuthService {
                 TimeUnit.SECONDS
         );
 
-        log.info("login success: {} (Company: {})", user.getUserId(), request.getCompanyCode());
         return new TokenResponseDto(accessToken, refreshToken, user.getUserNm(), user.getCompanyId(), user.getId());
+    }
+
+    private boolean verifyMd5(String rawPassword, String encodedPassword) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(rawPassword.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            byte[] digest = md.digest();
+            StringBuilder sb = new StringBuilder();
+            for (byte b : digest) {
+                sb.append(String.format("%02x", b & 0xff));
+            }
+            return sb.toString().equalsIgnoreCase(encodedPassword);
+        } catch (NoSuchAlgorithmException e) {
+            log.error("MD5 algorithm not found", e);
+            return false;
+        }
     }
 
     @Override

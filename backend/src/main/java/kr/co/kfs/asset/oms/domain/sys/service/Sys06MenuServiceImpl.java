@@ -43,17 +43,19 @@ public class Sys06MenuServiceImpl implements Sys06MenuService {
             menuMap.put(menu.getMenuId(), menu);
         }
         
-        // 2. 트리 구조 생성
+        // 2. 트리 구조 생성 및 레벨 설정
         for (Sys06MenuDto menu : allMenus) {
             Long parentId = menu.getParentId();
             if (parentId == null || parentId == 0) {
+                menu.setLevel(1);
                 rootMenus.add(menu);
             } else {
                 Sys06MenuDto parent = menuMap.get(parentId);
                 if (parent != null) {
+                    menu.setLevel(parent.getLevel() + 1);
                     parent.getChildren().add(menu);
                 } else {
-                    // 부모가 없으면 루트로 취급 (보통 데이터 일관성 문제)
+                    menu.setLevel(1);
                     rootMenus.add(menu);
                 }
             }

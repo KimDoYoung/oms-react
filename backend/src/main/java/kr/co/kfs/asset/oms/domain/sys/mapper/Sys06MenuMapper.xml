@@ -47,15 +47,24 @@
     </select>
 
     <select id="selectByUserId" resultMap="mapper">
-        SELECT DISTINCT sys06_menu.*,
-               f_menu_nm_allpath(sys06_menu_id) AS sys06_menu_full_nm
-          FROM sys06_menu
-               INNER JOIN sys03_company_menu ON sys06_menu_id = sys03_menu_id
-               INNER JOIN sys07_role_menu    ON sys06_menu_id = sys07_menu_id AND sys07_use_yn = 'true'
-               INNER JOIN sys05_user_role    ON sys07_role_id = sys05_role_id
-         WHERE sys03_company_id = #{companyId}
-           AND sys05_user_id    = #{userId}
-         ORDER BY sys06_seq
+        SELECT DISTINCT m.*,
+               f_menu_nm_allpath(m.sys06_menu_id) AS sys06_menu_full_nm
+          FROM sys06_menu m
+               INNER JOIN sys03_company_menu cm ON m.sys06_menu_id = cm.sys03_menu_id
+         WHERE cm.sys03_company_id = #{companyId}
+           AND cm.sys03_use_yn = 'true'
+           AND (
+               /* admin 회사(1)이거나, Role이 매핑되어 있는 경우 */
+               #{companyId} = 1 
+               OR EXISTS (
+                   SELECT 1 FROM sys07_role_menu rm
+                   INNER JOIN sys05_user_role ur ON rm.sys07_role_id = ur.sys05_role_id
+                   WHERE rm.sys07_menu_id = m.sys06_menu_id
+                     AND ur.sys05_user_id = #{userId}
+                     AND rm.sys07_use_yn = 'true'
+               )
+           )
+         ORDER BY m.sys06_seq
     </select>
 
     <select id="selectByRoleId" resultMap="mapper">
