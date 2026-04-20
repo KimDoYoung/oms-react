@@ -4,13 +4,16 @@
 
 <mapper namespace="kr.co.kfs.asset.oms.domain.auth.service.UserMapper">
 
-    <select id="findByUserId" parameterType="string" resultType="kr.co.kfs.asset.oms.domain.auth.entity.User">
-        SELECT sys02_user_id as id, 
-               sys02_login_id as user_id, 
-               sys02_passwd as user_pw, 
-               sys02_kor_nm as user_nm
-        FROM sys02_user
-        WHERE sys02_login_id = #{userId}
+    <select id="findByUserId" resultType="kr.co.kfs.asset.oms.domain.auth.entity.User">
+        SELECT u.sys02_user_id as id, 
+               u.sys02_company_id as company_id,
+               u.sys02_login_id as user_id, 
+               u.sys02_passwd as user_pw, 
+               u.sys02_kor_nm as user_nm
+        FROM sys02_user u
+        JOIN sys01_company c ON u.sys02_company_id = c.sys01_company_id
+        WHERE c.sys01_loc_nm = #{companyCode}
+          AND u.sys02_login_id = #{userId}
     </select>
 
     <update id="updatePassword">

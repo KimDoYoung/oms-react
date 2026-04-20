@@ -27,15 +27,15 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public TokenResponseDto login(LoginRequestDto request) {
-        User user = userMapper.findByUserId(request.getUserId())
+        User user = userMapper.findByUserId(request.getCompanyCode(), request.getUserId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다."));
 
         if (!user.getUserPw().equals(request.getUserPw())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다.");
         }
 
-        String accessToken  = jwtUtil.generateAccessToken(user.getUserId());
-        String refreshToken = jwtUtil.generateRefreshToken(user.getUserId());
+        String accessToken  = jwtUtil.generateAccessToken(user.getUserId(), user.getCompanyId(), user.getId());
+        String refreshToken = jwtUtil.generateRefreshToken(user.getUserId(), user.getCompanyId(), user.getId());
 
         long refreshTtlSeconds = jwtUtil.getRemainingMillis(refreshToken) / 1000;
         redisTemplate.opsForValue().set(
@@ -45,8 +45,8 @@ public class AuthServiceImpl implements AuthService {
                 TimeUnit.SECONDS
         );
 
-        log.info("login success: {}", user.getUserId());
-        return new TokenResponseDto(accessToken, refreshToken, user.getUserNm());
+        log.info("login success: {} (Company: {})", user.getUserId(), request.getCompanyCode());
+        return new TokenResponseDto(accessToken, refreshToken, user.getUserNm(), user.getCompanyId(), user.getId());
     }
 
     @Override
@@ -73,15 +73,19 @@ public class AuthServiceImpl implements AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "유효하지 않은 refresh token입니다.");
         }
 
-        String userId = jwtUtil.getUserId(refreshToken);
+        var claims = jwtUtil.parseClaims(refreshToken);
+        String userId = claims.getSubject();
+        Long companyId = claims.get("companyId", Long.class);
+        Long userLongId = claims.get("userId", Long.class);
+
         String stored = redisTemplate.opsForValue().get(REFRESH_PREFIX + userId);
 
         if (!refreshToken.equals(stored)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "refresh token이 일치하지 않습니다.");
         }
 
-        String newAccessToken = jwtUtil.generateAccessToken(userId);
+        String newAccessToken = jwtUtil.generateAccessToken(userId, companyId, userLongId);
         log.info("token refresh success: {}", userId);
-        return new TokenResponseDto(newAccessToken, refreshToken, null);
+        return new TokenResponseDto(newAccessToken, refreshToken, null, companyId, userLongId);
     }
 }

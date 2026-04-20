@@ -31,9 +31,14 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = resolveToken(request);
 
         if (StringUtils.hasText(token) && jwtUtil.isValid(token) && !isBlacklisted(token)) {
-            String userId = jwtUtil.getUserId(token);
+            var claims = jwtUtil.parseClaims(token);
+            String loginId = claims.getSubject();
+            Long companyId = claims.get("companyId", Long.class);
+            Long userId = claims.get("userId", Long.class);
+
+            OmsUserPrincipal principal = new OmsUserPrincipal(loginId, userId, companyId);
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userId, null, List.of());
+                    new UsernamePasswordAuthenticationToken(principal, null, List.of());
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 

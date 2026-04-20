@@ -9,4 +9,6 @@ public class TokenResponseDto {
     private String accessToken;
     private String refreshToken;
     private String userNm;
+    private Long companyId;
+    private Long userId;
 }

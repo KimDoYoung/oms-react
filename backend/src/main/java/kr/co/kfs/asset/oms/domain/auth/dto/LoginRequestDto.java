@@ -5,6 +5,9 @@ import lombok.Getter;
 
 @Getter
 public class LoginRequestDto {
+    @NotBlank(message = "회사코드를 입력해 주세요.")
+    private String companyCode;
+
     @NotBlank(message = "아이디를 입력해 주세요.")
     private String userId;
 

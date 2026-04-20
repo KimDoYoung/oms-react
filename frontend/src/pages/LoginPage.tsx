@@ -1,41 +1,71 @@
-import React, { useState, FormEvent } from 'react'
+import React, { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/authStore'
 import api from '@/services/api'
-import { Info, Monitor, ShieldAlert, KeyRound, Globe } from 'lucide-react'
+import { Info, Monitor, ShieldAlert, KeyRound, Globe, Loader2 } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+
+// Validation Schema
+const loginSchema = z.object({
+  companyCode: z.string().min(1, '회사코드를 입력해 주세요.'),
+  userId: z.string().min(1, '아이디를 입력해 주세요.'),
+  userPw: z.string().min(1, '비밀번호를 입력해 주세요.'),
+  autoLogin: z.boolean().default(false),
+})
+
+type LoginFormValues = z.infer<typeof loginSchema>
 
 export default function LoginPage({ isModal = false }: { isModal?: boolean }) {
   const queryClient = useQueryClient()
   const { login, username } = useAuthStore()
   
-  const [userId, setUserId] = useState(username || '')
-  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   
-  // GWT-like subDomain state (default to admin)
-  const [subDomain, setSubDomain] = useState('admin')
-  const [autoLogin, setAutoLogin] = useState(false)
+  // Extract companyCode from subdomain (e.g. kova.localhost:5173 -> kova)
+  const getInitialCompanyCode = () => {
+    const host = window.location.hostname
+    const parts = host.split('.')
+    if (parts.length > 1) {
+      return parts[0]
+    }
+    return 'admin'
+  }
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      companyCode: getInitialCompanyCode(),
+      userId: username || '',
+      userPw: '',
+      autoLogin: false,
+    }
+  })
+
+  const onSubmit = async (values: LoginFormValues) => {
     setError('')
     setLoading(true)
     try {
-      // In the legacy code, they used subDomain (locationName) + loginId + passWord
-      const res = await api.post('/auth/login', { userId, userPw: password })
-      const { accessToken, refreshToken, userNm } = res.data
+      const res = await api.post('/auth/login', { 
+        companyCode: values.companyCode,
+        userId: values.userId, 
+        userPw: values.userPw 
+      })
+      
+      const { accessToken, refreshToken, userNm, companyId, userId: userLongId } = res.data
+      
       if (accessToken) {
         await queryClient.invalidateQueries()
-        login(userNm || userId, accessToken, refreshToken)
+        login(userNm || values.userId, accessToken, refreshToken, companyId, userLongId)
       } else {
         setError('로그인 실패')
       }
     } catch (err: any) {
       const msg = err.response?.data?.detail ?? '아이디 또는 비밀번호가 올바르지 않습니다.'
       setError(msg)
-      setPassword('')
     } finally {
       setLoading(false)
     }
@@ -48,7 +78,7 @@ export default function LoginPage({ isModal = false }: { isModal?: boolean }) {
       {/* GWT-like Header Style */}
       <div className="bg-gradient-to-r from-[#344E41] via-[#3A5A40] to-[#588157] p-8 pb-10 text-white">
         <h1 className="text-3xl font-extrabold tracking-tight mb-1">OMS 로그인</h1>
-        <p className="text-xs text-white/70 font-medium">Order Management System</p>
+        <p className="text-xs text-white/70 font-medium uppercase tracking-tighter">Order Management System</p>
       </div>
 
       <div className="px-7 py-8 -mt-6 bg-white rounded-t-3xl shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
@@ -59,22 +89,20 @@ export default function LoginPage({ isModal = false }: { isModal?: boolean }) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* SubDomain / Company lookup (Simplified GWT lookup) */}
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          {/* SubDomain / Company lookup */}
           <div className="group">
             <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 ml-1">접속 서버</label>
             <div className="relative">
               <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#588157] transition-colors" size={16} />
-              <select 
-                value={subDomain}
-                onChange={(e) => setSubDomain(e.target.value)}
-                className="w-full bg-gray-50/80 border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#588157]/30 focus:border-[#588157] transition-all cursor-pointer appearance-none"
-              >
-                <option value="admin">admin (관리자)</option>
-                <option value="dev">개발 (Development)</option>
-                <option value="real">운영 (Production)</option>
-              </select>
+              <input 
+                {...register('companyCode')}
+                className={`w-full bg-gray-50/80 border ${errors.companyCode ? 'border-rose-300' : 'border-gray-200'} rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#588157]/30 focus:border-[#588157] transition-all`}
+                placeholder="회사코드"
+                disabled={loading}
+              />
             </div>
+            {errors.companyCode && <p className="mt-1 ml-1 text-[10px] text-rose-500 font-medium">{errors.companyCode.message}</p>}
           </div>
 
           <div className="group">
@@ -82,15 +110,13 @@ export default function LoginPage({ isModal = false }: { isModal?: boolean }) {
             <div className="relative">
               <Monitor className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#588157] transition-colors" size={16} />
               <input
-                type="text"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                className="w-full bg-gray-50/80 border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#588157]/30 focus:border-[#588157] transition-all"
+                {...register('userId')}
+                className={`w-full bg-gray-50/80 border ${errors.userId ? 'border-rose-300' : 'border-gray-200'} rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#588157]/30 focus:border-[#588157] transition-all`}
                 placeholder="사원번호를 입력하세요"
                 disabled={loading}
-                required
               />
             </div>
+            {errors.userId && <p className="mt-1 ml-1 text-[10px] text-rose-500 font-medium">{errors.userId.message}</p>}
           </div>
 
           <div className="group">
@@ -98,13 +124,11 @@ export default function LoginPage({ isModal = false }: { isModal?: boolean }) {
             <div className="relative">
               <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#588157] transition-colors" size={16} />
               <input
+                {...register('userPw')}
                 type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-gray-50/80 border border-gray-200 rounded-xl pl-10 pr-12 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#588157]/30 focus:border-[#588157] transition-all"
+                className={`w-full bg-gray-50/80 border ${errors.userPw ? 'border-rose-300' : 'border-gray-200'} rounded-xl pl-10 pr-12 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#588157]/30 focus:border-[#588157] transition-all`}
                 placeholder="비밀번호 입력"
                 disabled={loading}
-                required
               />
               <button
                 type="button"
@@ -114,17 +138,19 @@ export default function LoginPage({ isModal = false }: { isModal?: boolean }) {
                 {showPassword ? '🙈' : '👁'}
               </button>
             </div>
+            {errors.userPw && <p className="mt-1 ml-1 text-[10px] text-rose-500 font-medium">{errors.userPw.message}</p>}
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className={`mt-4 w-full py-4 rounded-xl font-bold text-sm transition-all shadow-lg ${
+            className={`mt-4 w-full py-4 rounded-xl font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2 ${
               loading 
                 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
                 : 'bg-gradient-to-r from-[#3A5A40] to-[#588157] text-white hover:shadow-[#588157]/30 hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
             }`}
           >
+            {loading && <Loader2 size={16} className="animate-spin" />}
             {loading ? '로그인 처리 중...' : '로그인'}
           </button>
 
@@ -132,9 +158,8 @@ export default function LoginPage({ isModal = false }: { isModal?: boolean }) {
           <div className="flex items-center justify-between mt-1 px-1">
             <label className="flex items-center gap-2 cursor-pointer group">
               <input 
+                {...register('autoLogin')}
                 type="checkbox" 
-                checked={autoLogin} 
-                onChange={(e) => setAutoLogin(e.target.checked)}
                 className="w-4 h-4 rounded border-gray-300 text-[#588157] focus:ring-[#588157]/30"
               />
               <span className="text-[11px] font-bold text-gray-500 group-hover:text-gray-700 transition-colors">로그인 상태 유지</span>
@@ -143,28 +168,10 @@ export default function LoginPage({ isModal = false }: { isModal?: boolean }) {
           </div>
         </form>
 
-        {/* Info Labels from GWT */}
-        <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col gap-3">
-          <div className="flex gap-3 items-start group">
-            <div className="mt-0.5 p-1.5 rounded-lg bg-blue-50 text-blue-600 shrink-0">
-              <Info size={14} />
-            </div>
-            <p className="text-[11px] leading-relaxed text-gray-500">
-              <span className="font-bold text-blue-700">CHROME</span>에 최적화 되어 있습니다.
-            </p>
-          </div>
-          <div className="flex gap-3 items-start">
-            <div className="mt-0.5 p-1.5 rounded-lg bg-amber-50 text-amber-600 shrink-0">
-              <Info size={14} />
-            </div>
-            <p className="text-[11px] leading-relaxed text-gray-500">
-              Login ID는 <span className="font-bold text-amber-700">사원번호(예:000)</span>를 사용 바랍니다.
-            </p>
-          </div>
-        </div>
-
         <div className="mt-10 text-center">
-          <p className="text-[10px] font-bold text-gray-300 tracking-[0.2em] uppercase">ver. 1.0.0 &copy; 2025 OMS</p>
+          <p className="text-[10px] font-bold text-gray-300 tracking-[0.2em] uppercase leading-relaxed">
+            ver. 1.0.0 &copy; 2026<br/>한국펀드서비스(주) OMS
+          </p>
         </div>
       </div>
     </div>

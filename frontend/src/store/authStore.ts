@@ -6,7 +6,9 @@ interface AuthState {
   username: string
   accessToken: string
   refreshToken: string
-  login: (username: string, accessToken: string, refreshToken: string) => void
+  companyId: number | null
+  userId: number | null
+  login: (username: string, accessToken: string, refreshToken: string, companyId: number, userId: number) => void
   logout: () => void
   expireSession: () => void
   setTokens: (accessToken: string, refreshToken: string) => void
@@ -19,9 +21,11 @@ export const useAuthStore = create<AuthState>()(
       username: '',
       accessToken: '',
       refreshToken: '',
-      login: (username, accessToken, refreshToken) =>
-        set({ isLoggedIn: true, username, accessToken, refreshToken }),
-      logout: () => set({ isLoggedIn: false, username: '', accessToken: '', refreshToken: '' }),
+      companyId: null,
+      userId: null,
+      login: (username, accessToken, refreshToken, companyId, userId) =>
+        set({ isLoggedIn: true, username, accessToken, refreshToken, companyId, userId }),
+      logout: () => set({ isLoggedIn: false, username: '', accessToken: '', refreshToken: '', companyId: null, userId: null }),
       expireSession: () => set({ isLoggedIn: false }),
       setTokens: (accessToken, refreshToken) => set({ accessToken, refreshToken }),
     }),

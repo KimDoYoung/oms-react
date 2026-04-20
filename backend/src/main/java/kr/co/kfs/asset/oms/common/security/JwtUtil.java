@@ -27,18 +27,20 @@ public final class JwtUtil {
         this.refreshExpiration = refreshExpiration;
     }
 
-    public String generateAccessToken(String userId) {
-        return buildToken(userId, accessExpiration);
+    public String generateAccessToken(String userId, Long companyId, Long userLongId) {
+        return buildToken(userId, companyId, userLongId, accessExpiration);
     }
 
-    public String generateRefreshToken(String userId) {
-        return buildToken(userId, refreshExpiration);
+    public String generateRefreshToken(String userId, Long companyId, Long userLongId) {
+        return buildToken(userId, companyId, userLongId, refreshExpiration);
     }
 
-    private String buildToken(String userId, long expiration) {
+    private String buildToken(String userId, Long companyId, Long userLongId, long expiration) {
         Date now = new Date();
         return Jwts.builder()
                 .subject(userId)
+                .claim("companyId", companyId)
+                .claim("userId", userLongId)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expiration))
                 .signWith(secretKey)

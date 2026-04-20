@@ -13,6 +13,7 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 public class User {
     private Long id;
+    private Long companyId;
     private String userId;
     private String userPw;
     private String userNm;
