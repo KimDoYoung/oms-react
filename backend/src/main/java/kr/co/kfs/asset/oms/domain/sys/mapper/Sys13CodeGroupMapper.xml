@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.asset.oms.domain.sys.mapper.Sys13CodeGroupMapper">
+
+    <resultMap id="mapper" type="kr.co.kfs.asset.oms.domain.sys.dto.Sys13CodeGroupDto">
+        <id     column="sys13_code_group_id" property="codeGroupId"/>
+        <result column="sys13_kind_group_cd" property="kindGroupCode"/>
+        <result column="sys13_kind_group_nm" property="kindGroupName"/>
+        <result column="sys13_code_kind_id"  property="codeKindId"/>
+        <result column="sys13_code_id"       property="codeId"/>
+        <result column="sys13_note"          property="note"/>
+        <result column="sys13_code"          property="code"/>
+        <result column="sys13_name"          property="name"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="mapper" parameterType="Long">
+        SELECT a.*, COALESCE(b.sys09_code, '') AS sys13_code, COALESCE(b.sys09_name, '') AS sys13_name
+          FROM sys13_code_group a
+               LEFT OUTER JOIN sys09_code b ON a.sys13_code_id = b.sys09_code_id
+         WHERE sys13_code_group_id = #{codeGroupId}
+    </select>
+
+    <select id="selectByGroupCodeKind" resultMap="mapper" parameterType="Long">
+        SELECT *
+          FROM sys13_code_group
+         WHERE sys13_code_kind_id = #{codeKindId}
+           AND sys13_code_id = 0
+         ORDER BY sys13_kind_group_cd, sys13_kind_group_nm
+    </select>
+
+    <select id="selectByKindGroupCode" resultMap="mapper">
+        SELECT a.*, COALESCE(b.sys09_code, '') AS sys13_code, COALESCE(b.sys09_name, '') AS sys13_name
+          FROM sys13_code_group a
+               LEFT OUTER JOIN sys09_code b ON a.sys13_code_id = b.sys09_code_id
+         WHERE sys13_kind_group_cd = #{kindGroupCode}
+           AND sys13_code_kind_id  = #{codeKindId}
+           AND sys13_code_id != 0
+           AND sys09_company_id = #{companyId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="codeGroupId">
+        INSERT INTO sys13_code_group (sys13_kind_group_cd, sys13_kind_group_nm, sys13_code_kind_id, sys13_code_id)
+        VALUES (#{kindGroupCode}, #{kindGroupName}, #{codeKindId}, #{codeId})
+    </insert>
+
+    <update id="update">
+        UPDATE sys13_code_group
+           SET sys13_kind_group_cd = #{kindGroupCode},
+               sys13_kind_group_nm = #{kindGroupName}
+         WHERE sys13_code_kind_id  = #{codeKindId}
+           AND sys13_kind_group_cd = #{kindGroupCode}
+           AND sys13_kind_group_nm = #{kindGroupName}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM sys13_code_group
+         WHERE sys13_code_kind_id  = #{codeKindId}
+           AND sys13_kind_group_cd = #{kindGroupCode}
+           AND sys13_kind_group_nm = #{kindGroupName}
+    </delete>
+
+</mapper>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.asset.oms.domain.sys.mapper.Sys08CodeKindMapper">
+
+    <resultMap id="mapper" type="kr.co.kfs.asset.oms.domain.sys.dto.Sys08CodeKindDto">
+        <id     column="sys08_code_kind_id" property="codeKindId"/>
+        <result column="sys08_kind_cd"      property="kindCode"/>
+        <result column="sys08_kind_nm"      property="kindName"/>
+        <result column="sys08_sys_yn"       property="sysYn"/>
+        <result column="sys08_note"         property="note"/>
+        <result column="sys08_date"         property="date"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="mapper" parameterType="Long">
+        SELECT * FROM sys08_code_kind WHERE sys08_code_kind_id = #{codeKindId}
+    </select>
+
+    <select id="selectByAll" resultMap="mapper">
+        SELECT s.*,
+               (SELECT sys09_apply_date FROM sys09_code
+                 WHERE sys09_code_kind_id = s.sys08_code_kind_id LIMIT 1) AS sys08_date
+          FROM sys08_code_kind s
+         ORDER BY s.sys08_kind_cd
+    </select>
+
+    <select id="selectByKindName" resultMap="mapper">
+        SELECT *
+          FROM sys08_code_kind
+         WHERE sys08_sys_yn LIKE #{sysYn}
+           AND (sys08_kind_nm LIKE #{kindName} OR LOWER(sys08_kind_cd) LIKE LOWER(#{kindName}))
+         ORDER BY sys08_kind_cd
+    </select>
+
+    <select id="selectByKindCode" resultMap="mapper" parameterType="String">
+        SELECT * FROM sys08_code_kind WHERE sys08_kind_cd = #{kindCode}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="codeKindId">
+        INSERT INTO sys08_code_kind (sys08_kind_cd, sys08_kind_nm, sys08_sys_yn, sys08_note)
+        VALUES (#{kindCode}, #{kindName}, #{sysYn}, #{note})
+    </insert>
+
+    <update id="update">
+        UPDATE sys08_code_kind
+           SET sys08_kind_nm = #{kindName},
+               sys08_sys_yn  = #{sysYn},
+               sys08_note    = #{note}
+         WHERE sys08_code_kind_id = #{codeKindId}
+    </update>
+
+    <delete id="delete" parameterType="Long">
+        DELETE FROM sys08_code_kind WHERE sys08_code_kind_id = #{codeKindId}
+    </delete>
+
+</mapper>

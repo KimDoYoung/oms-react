@@ -59,6 +59,16 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
+// src/main/java 안의 XML mapper 파일을 빌드에 포함
+sourceSets {
+    main {
+        resources {
+            srcDirs += 'src/main/java'
+            includes += '**/*.xml'
+        }
+    }
+}
+
 tasks.named('test') {
     useJUnitPlatform()
 }

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.asset.oms.domain.sys.mapper.Sys06MenuMapper">
+
+    <resultMap id="mapper" type="kr.co.kfs.asset.oms.domain.sys.dto.Sys06MenuDto">
+        <id     column="sys06_menu_id"          property="menuId"/>
+        <result column="sys06_parent_id"         property="parentId"/>
+        <result column="sys06_menu_nm"           property="menuName"/>
+        <result column="sys06_class_nm"          property="className"/>
+        <result column="sys06_seq"               property="seq"/>
+        <result column="sys06_use_yn"            property="useYn"/>
+        <result column="sys06_note"              property="note"/>
+        <result column="sys06_menu_no"           property="menuNo"/>
+        <result column="sys06_menu_nm_with_no"   property="menuNameWithNo"/>
+        <result column="sys06_role_menu_yn"      property="roleMenuYn"/>
+        <result column="sys06_parent_menu_nm"    property="parentMenuName"/>
+        <result column="sys06_menu_full_nm"      property="menuFullName"/>
+        <result column="menu_level"              property="level"/>
+        <result column="sys06_mobi_use_yn"       property="mobiUseYn"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="mapper" parameterType="Long">
+        SELECT * FROM sys06_menu WHERE sys06_menu_id = #{menuId}
+    </select>
+
+    <select id="selectByAll" resultMap="mapper">
+        SELECT *,
+               CASE WHEN sys06_menu_no IS NULL THEN sys06_menu_nm
+                    ELSE sys06_menu_no || ' ' || sys06_menu_nm END AS sys06_menu_nm_with_no
+          FROM sys06_menu
+         WHERE COALESCE(sys06_use_yn, 'true') = 'true'
+         ORDER BY sys06_seq, sys06_menu_nm
+    </select>
+
+    <select id="selectByCompanyId" resultMap="mapper">
+        SELECT *,
+               CASE WHEN sys06_menu_no IS NULL THEN sys06_menu_nm
+                    ELSE sys06_menu_no || ' ' || sys06_menu_nm END AS sys06_menu_nm_with_no
+          FROM sys06_menu
+               INNER JOIN sys03_company_menu ON sys06_menu_id = sys03_menu_id
+         WHERE COALESCE(sys03_use_yn, 'false') = 'true'
+           AND sys03_company_id = #{companyId}
+           AND sys06_parent_id  = #{parentId}
+         ORDER BY sys06_seq, sys06_menu_nm
+    </select>
+
+    <select id="selectByUserId" resultMap="mapper">
+        SELECT DISTINCT sys06_menu.*,
+               f_menu_nm_allpath(sys06_menu_id) AS sys06_menu_full_nm
+          FROM sys06_menu
+               INNER JOIN sys03_company_menu ON sys06_menu_id = sys03_menu_id
+               INNER JOIN sys07_role_menu    ON sys06_menu_id = sys07_menu_id AND sys07_use_yn = 'true'
+               INNER JOIN sys05_user_role    ON sys07_role_id = sys05_role_id
+         WHERE sys03_company_id = #{companyId}
+           AND sys05_user_id    = #{userId}
+         ORDER BY sys06_seq
+    </select>
+
+    <select id="selectByRoleId" resultMap="mapper">
+        SELECT sys06_menu.*,
+               CASE WHEN sys07_role_menu_id IS NULL THEN 'false' ELSE 'true' END AS sys06_role_menu_yn
+          FROM sys06_menu
+               INNER JOIN sys03_company_menu ON sys06_menu_id = sys03_menu_id
+               LEFT OUTER JOIN sys07_role_menu ON sys06_menu_id = sys07_menu_id AND sys07_role_id = #{roleId}
+         WHERE sys03_company_id = #{companyId}
+         ORDER BY sys06_seq
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="menuId">
+        INSERT INTO sys06_menu (sys06_parent_id, sys06_menu_nm, sys06_class_nm, sys06_seq, sys06_use_yn, sys06_note, sys06_menu_no, sys06_mobi_use_yn)
+        VALUES (#{parentId}, #{menuName}, #{className}, #{seq}, #{useYn}, #{note}, #{menuNo}, #{mobiUseYn})
+    </insert>
+
+    <update id="update">
+        UPDATE sys06_menu
+           SET sys06_menu_nm    = #{menuName},
+               sys06_class_nm   = #{className},
+               sys06_seq        = #{seq},
+               sys06_use_yn     = #{useYn},
+               sys06_note       = #{note},
+               sys06_menu_no    = #{menuNo},
+               sys06_mobi_use_yn = #{mobiUseYn}
+         WHERE sys06_menu_id = #{menuId}
+    </update>
+
+    <delete id="delete" parameterType="Long">
+        DELETE FROM sys06_menu WHERE sys06_menu_id = #{menuId}
+    </delete>
+
+</mapper>

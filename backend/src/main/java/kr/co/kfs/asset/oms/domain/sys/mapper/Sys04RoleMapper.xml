@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.asset.oms.domain.sys.mapper.Sys04RoleMapper">
+
+    <resultMap id="mapper" type="kr.co.kfs.asset.oms.domain.sys.dto.Sys04RoleDto">
+        <id     column="sys04_role_id"      property="roleId"/>
+        <result column="sys04_company_id"   property="companyId"/>
+        <result column="sys04_role_nm"      property="roleName"/>
+        <result column="sys04_seq"          property="seq"/>
+        <result column="sys04_default_role" property="defaultRole"/>
+        <result column="sys04_user_role_yn" property="userRoleYn"/>
+        <result column="sys04_note"         property="note"/>
+        <result column="sys04_admin_yn"     property="adminYn"/>
+        <result column="sys04_company_nm"   property="companyName"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="mapper" parameterType="Long">
+        SELECT sys04_role.*, f_get_company_nm(sys04_company_id) AS sys04_company_nm
+          FROM sys04_role
+         WHERE sys04_role_id = #{roleId}
+    </select>
+
+    <select id="selectByCompanyId" resultMap="mapper" parameterType="Long">
+        SELECT sys04_role.*, f_get_company_nm(sys04_company_id) AS sys04_company_nm
+          FROM sys04_role
+         WHERE sys04_company_id = #{companyId}
+         ORDER BY sys04_seq
+    </select>
+
+    <select id="selectByName" resultMap="mapper">
+        SELECT sys04_role.*, f_get_company_nm(sys04_company_id) AS sys04_company_nm
+          FROM sys04_role
+         WHERE sys04_role_nm LIKE #{roleName}
+           AND sys04_company_id = #{companyId}
+         ORDER BY sys04_seq
+    </select>
+
+    <select id="selectByUserId" resultMap="mapper">
+        SELECT sys04_role.*,
+               sys05_user_role.*,
+               CASE WHEN sys05_user_role_id IS NULL THEN 'false' ELSE 'true' END AS sys04_user_role_yn,
+               f_get_company_nm(sys04_company_id) AS sys04_company_nm
+          FROM sys04_role
+               LEFT OUTER JOIN sys05_user_role ON sys04_role_id = sys05_role_id AND sys05_user_id = #{userId}
+         WHERE sys04_company_id = #{companyId}
+         ORDER BY sys04_seq, sys05_seq
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="roleId">
+        INSERT INTO sys04_role (sys04_company_id, sys04_role_nm, sys04_note, sys04_seq, sys04_default_role, sys04_admin_yn)
+        VALUES (#{companyId}, #{roleName}, #{note}, #{seq}, #{defaultRole}, #{adminYn})
+    </insert>
+
+    <update id="update">
+        UPDATE sys04_role
+           SET sys04_role_nm      = #{roleName},
+               sys04_note         = #{note},
+               sys04_seq          = #{seq},
+               sys04_default_role = #{defaultRole},
+               sys04_admin_yn     = #{adminYn}
+         WHERE sys04_role_id = #{roleId}
+    </update>
+
+    <delete id="delete" parameterType="Long">
+        DELETE FROM sys04_role WHERE sys04_role_id = #{roleId}
+    </delete>
+
+</mapper>

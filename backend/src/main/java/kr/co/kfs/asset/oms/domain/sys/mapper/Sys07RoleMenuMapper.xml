@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.asset.oms.domain.sys.mapper.Sys07RoleMenuMapper">
+
+    <resultMap id="mapper" type="kr.co.kfs.asset.oms.domain.sys.dto.Sys07RoleMenuDto">
+        <id     column="sys07_role_menu_id" property="roleMenuId"/>
+        <result column="sys07_role_id"      property="roleId"/>
+        <result column="sys07_menu_id"      property="menuId"/>
+        <result column="sys07_use_yn"       property="useYn"/>
+        <result column="sys07_note"         property="note"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="mapper" parameterType="Long">
+        SELECT * FROM sys07_role_menu WHERE sys07_role_menu_id = #{roleMenuId}
+    </select>
+
+    <select id="selectByMenuId" resultMap="mapper">
+        SELECT *
+          FROM sys07_role_menu
+         WHERE sys07_role_id IN (
+                   SELECT sys04_role_id FROM sys04_role
+                    WHERE sys04_company_id = #{companyId}
+                      AND sys04_role_nm = #{roleName}
+               )
+           AND sys07_menu_id = #{menuId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="roleMenuId">
+        INSERT INTO sys07_role_menu (sys07_role_id, sys07_menu_id, sys07_use_yn, sys07_note)
+        VALUES (#{roleId}, #{menuId}, #{useYn}, #{note})
+    </insert>
+
+    <update id="update">
+        UPDATE sys07_role_menu
+           SET sys07_use_yn = #{useYn},
+               sys07_note   = #{note}
+         WHERE sys07_role_menu_id = #{roleMenuId}
+    </update>
+
+    <delete id="delete" parameterType="Long">
+        DELETE FROM sys07_role_menu WHERE sys07_role_menu_id = #{roleMenuId}
+    </delete>
+
+</mapper>

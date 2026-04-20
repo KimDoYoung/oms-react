@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.asset.oms.domain.sys.mapper.Sys01CompanyMapper">
+
+    <resultMap id="mapper" type="kr.co.kfs.asset.oms.domain.sys.dto.Sys01CompanyDto">
+        <id     column="sys01_company_id"   property="companyId"/>
+        <result column="sys01_company_nm"   property="companyName"/>
+        <result column="sys01_loc_nm"       property="locationName"/>
+        <result column="sys01_biz_no"       property="bizNo"/>
+        <result column="sys01_start_date"   property="startDate"/>
+        <result column="sys01_close_date"   property="closeDate"/>
+        <result column="sys01_use_yn"       property="useYn"/>
+        <result column="sys01_cont_type"    property="contractType"/>
+        <result column="sys01_note"         property="note"/>
+        <result column="sys01_menu_yn"      property="menuYn"/>
+        <result column="sys01_zip_cd"       property="zipCode"/>
+        <result column="sys01_zip_addr"     property="zipAddress"/>
+        <result column="sys01_zip_detail"   property="zipDetail"/>
+        <result column="sys01_full_address" property="fullAddress"/>
+        <result column="sys01_office_tel_no"  property="officeTelNo"/>
+        <result column="sys01_mobile_tel_no"  property="mobileTelNo"/>
+        <result column="sys01_email_addr"     property="emailAddress"/>
+        <result column="sys01_company_rep_nm" property="companyRepName"/>
+        <result column="sys01_asset_yn"     property="assetYn"/>
+        <result column="sys01_advis_yn"     property="advisYn"/>
+        <result column="sys01_pbs_yn"       property="pbsYn"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="mapper" parameterType="Long">
+        SELECT *, CONCAT(sys01_zip_addr, ' ' || sys01_zip_detail) AS sys01_full_address
+          FROM sys01_company
+         WHERE sys01_company_id = #{companyId}
+    </select>
+
+    <select id="selectByAll" resultMap="mapper">
+        SELECT *, CONCAT(sys01_zip_addr, ' ' || sys01_zip_detail) AS sys01_full_address
+          FROM sys01_company
+         ORDER BY sys01_company_nm
+    </select>
+
+    <select id="selectByName" resultMap="mapper">
+        SELECT *, CONCAT(sys01_zip_addr, ' ' || sys01_zip_detail) AS sys01_full_address
+          FROM sys01_company
+         WHERE UPPER(CONCAT(sys01_company_nm, sys01_loc_nm, sys01_note)) LIKE UPPER(#{companyName})
+           AND (
+                 (#{useYn} = 'true'  AND COALESCE(sys01_use_yn, 'true') = 'true')
+                 OR (#{useYn} = 'false')
+               )
+         ORDER BY sys01_company_id
+    </select>
+
+    <update id="update">
+        UPDATE sys01_company
+           SET sys01_company_nm    = #{companyName},
+               sys01_loc_nm        = #{locationName},
+               sys01_biz_no        = #{bizNo},
+               sys01_use_yn        = #{useYn},
+               sys01_note          = #{note},
+               sys01_office_tel_no = #{officeTelNo},
+               sys01_mobile_tel_no = #{mobileTelNo},
+               sys01_email_addr    = #{emailAddress},
+               sys01_company_rep_nm = #{companyRepName}
+         WHERE sys01_company_id = #{companyId}
+    </update>
+
+</mapper>

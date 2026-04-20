@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.asset.oms.domain.sys.mapper.Sys03CompanyMenuMapper">
+
+    <resultMap id="mapper" type="kr.co.kfs.asset.oms.domain.sys.dto.Sys03CompanyMenuDto">
+        <id     column="sys03_company_menu_id" property="companyMenuId"/>
+        <result column="sys03_company_id"      property="companyId"/>
+        <result column="sys03_menu_id"         property="menuId"/>
+        <result column="sys03_use_yn"          property="useYn"/>
+        <result column="sys03_note"            property="note"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="mapper" parameterType="Long">
+        SELECT * FROM sys03_company_menu WHERE sys03_company_menu_id = #{companyMenuId}
+    </select>
+
+    <select id="selectByCompanyId" resultMap="mapper" parameterType="Long">
+        SELECT * FROM sys03_company_menu WHERE sys03_company_id = #{companyId}
+    </select>
+
+    <select id="selectByMenu" resultMap="mapper">
+        SELECT * FROM sys03_company_menu
+         WHERE sys03_company_id = #{companyId}
+           AND sys03_menu_id = #{menuId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="companyMenuId">
+        INSERT INTO sys03_company_menu (sys03_company_id, sys03_menu_id, sys03_use_yn, sys03_note)
+        VALUES (#{companyId}, #{menuId}, #{useYn}, #{note})
+    </insert>
+
+    <update id="updateUseYn">
+        UPDATE sys03_company_menu
+           SET sys03_use_yn = #{useYn}
+         WHERE sys03_menu_id    = #{menuId}
+           AND sys03_company_id = #{companyId}
+    </update>
+
+    <delete id="deleteByCompanyId">
+        DELETE FROM sys03_company_menu
+         WHERE sys03_menu_id    = #{menuId}
+           AND sys03_company_id = #{companyId}
+    </delete>
+
+</mapper>

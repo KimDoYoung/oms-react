@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.asset.oms.domain.sys.mapper.Sys02UserMapper">
+
+    <resultMap id="mapper" type="kr.co.kfs.asset.oms.domain.sys.dto.Sys02UserDto">
+        <id     column="sys02_user_id"    property="userId"/>
+        <result column="sys02_company_id" property="companyId"/>
+        <result column="sys02_kor_nm"     property="korName"/>
+        <result column="sys02_login_id"   property="loginId"/>
+        <result column="sys02_email"      property="email"/>
+        <result column="sys02_note"       property="note"/>
+        <result column="sys02_admin_yn"   property="adminYn"/>
+        <result column="sys02_tel1"       property="telNo01"/>
+        <result column="sys02_tel2"       property="telNo02"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="mapper" parameterType="Long">
+        SELECT sys02_user.*
+          FROM sys02_user
+         WHERE sys02_user_id = #{userId}
+    </select>
+
+    <select id="selectByCompanyId" resultMap="mapper" parameterType="Long">
+        SELECT *
+          FROM sys02_user
+         WHERE sys02_company_id = #{companyId}
+         ORDER BY sys02_kor_nm
+    </select>
+
+    <select id="selectByName" resultMap="mapper">
+        SELECT *
+          FROM sys02_user
+         WHERE sys02_company_id = #{companyId}
+           AND sys02_kor_nm LIKE #{korName}
+         ORDER BY sys02_kor_nm
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="userId">
+        INSERT INTO sys02_user (sys02_company_id, sys02_kor_nm, sys02_login_id, sys02_email, sys02_note, sys02_admin_yn, sys02_tel1, sys02_tel2)
+        VALUES (#{companyId}, #{korName}, #{loginId}, #{email}, #{note}, #{adminYn}, #{telNo01}, #{telNo02})
+    </insert>
+
+    <update id="update">
+        UPDATE sys02_user
+           SET sys02_kor_nm   = #{korName},
+               sys02_email    = #{email},
+               sys02_note     = #{note},
+               sys02_admin_yn = #{adminYn},
+               sys02_tel1     = #{telNo01},
+               sys02_tel2     = #{telNo02}
+         WHERE sys02_user_id = #{userId}
+    </update>
+
+    <delete id="delete" parameterType="Long">
+        DELETE FROM sys02_user WHERE sys02_user_id = #{userId}
+    </delete>
+
+</mapper>

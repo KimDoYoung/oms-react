@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.asset.oms.domain.sys.mapper.Sys26LoginMapper">
+
+    <resultMap id="mapper" type="kr.co.kfs.asset.oms.domain.sys.dto.Sys26LoginDto">
+        <id     column="sys26_login_id"        property="loginId"/>
+        <result column="sys26_person_id"        property="personId"/>
+        <result column="sys26_open_date"        property="openDate"/>
+        <result column="sys26_ip_address"       property="ipAddress"/>
+        <result column="sys26_status_cd"        property="statusCode"/>
+        <result column="sys26_login_mode"       property="loginMode"/>
+        <result column="sys26_mac_address"      property="macAddress"/>
+        <result column="sys26_os"               property="os"/>
+        <result column="sys26_browser"          property="browser"/>
+        <result column="sys26_open_date_string" property="openDateString"/>
+        <result column="sys26_company_nm"       property="companyName"/>
+        <result column="sys26_person_nm"        property="personName"/>
+        <result column="sys26_login_mode_nm"    property="loginModeName"/>
+        <result column="sys26_status_nm"        property="statusName"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="mapper" parameterType="Long">
+        SELECT *,
+               f_cdnm('LoginModeCode',   sys26_login_mode, 0, f_sysdate()) AS sys26_login_mode_nm,
+               f_cdnm('LoginStatusCode', sys26_status_cd,  0, f_sysdate()) AS sys26_status_nm,
+               TO_CHAR(sys26_open_date, 'YYYY-MM-DD HH24:MI:SS')            AS sys26_open_date_string
+          FROM sys26_login
+         WHERE sys26_login_id = #{loginId}
+    </select>
+
+    <select id="selectByLoginDate" resultMap="mapper">
+        SELECT sys26_login.*,
+               f_cdnm('LoginModeCode',   sys26_login_mode, 0, f_sysdate()) AS sys26_login_mode_nm,
+               f_cdnm('LoginStatusCode', sys26_status_cd,  0, f_sysdate()) AS sys26_status_nm,
+               TO_CHAR(sys26_open_date, 'YYYY-MM-DD HH24:MI:SS')            AS sys26_open_date_string,
+               (SELECT sys01_company_nm FROM sys01_company WHERE sys01_company_id = emp01_company_id) AS sys26_company_nm,
+               emp01_kor_nm || '(' || emp01_emp_no || ')'                   AS sys26_person_nm
+          FROM sys26_login
+               INNER JOIN emp01_person ON emp01_person_id = sys26_person_id
+         WHERE DATE_TRUNC('day', sys26_open_date) BETWEEN DATE_TRUNC('day', #{startDate}::timestamp)
+                                                      AND DATE_TRUNC('day', #{closeDate}::timestamp)
+           AND CAST(emp01_company_id AS VARCHAR) LIKE #{companyId}
+           AND COALESCE(sys26_login_mode, 'P') LIKE #{loginMode}
+         ORDER BY sys26_open_date DESC
+    </select>
+
+    <insert id="insert">
+        INSERT INTO sys26_login
+        SELECT f_create_seq(), #{personId}, f_sysdate(), #{ipAddress}, #{statusCode}, #{loginMode}, #{macAddress}, #{os}, #{browser}
+    </insert>
+
+</mapper>

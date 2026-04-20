@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.asset.oms.domain.sys.mapper.Sys12CalendarMapper">
+
+    <resultMap id="mapper" type="kr.co.kfs.asset.oms.domain.sys.dto.Sys12CalendarDto">
+        <id     column="sys12_calendar_id" property="calendarId"/>
+        <result column="sys12_company_id"  property="companyId"/>
+        <result column="sys12_day"         property="day"/>
+        <result column="sys12_weekday"     property="weekday"/>
+        <result column="sys12_working_yn"  property="workingYn"/>
+        <result column="sys12_off_reason"  property="offReason"/>
+        <result column="sys12_note"        property="note"/>
+        <result column="sys12_company_nm"  property="companyName"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="mapper" parameterType="Long">
+        SELECT sys12_calendar.*, sys01_company_nm AS sys12_company_nm
+          FROM sys12_calendar
+               INNER JOIN sys01_company ON sys01_company_id = sys12_company_id
+         WHERE sys12_calendar_id = #{calendarId}
+    </select>
+
+    <select id="selectByYear" resultMap="mapper">
+        SELECT *
+          FROM sys12_calendar
+         WHERE sys12_company_id = #{companyId}
+           AND TO_CHAR(sys12_day, 'yyyy') = #{year}
+           AND (#{month} = '%' OR TO_CHAR(sys12_day, 'MM') = #{month})
+         ORDER BY sys12_day
+    </select>
+
+    <select id="selectByDay" resultMap="mapper">
+        SELECT sys12_calendar.*, sys01_company_nm AS sys12_company_nm
+          FROM sys12_calendar
+               INNER JOIN sys01_company ON sys01_company_id = sys12_company_id
+         WHERE sys12_day = #{stdDate}::timestamp
+           AND (#{companyId} IS NULL OR sys12_company_id = #{companyId}::bigint)
+           AND sys01_use_yn = 'true'
+         ORDER BY sys01_company_id
+    </select>
+
+    <insert id="insertAuto">
+        INSERT INTO sys12_calendar
+        SELECT f_create_seq()
+             , #{companyId}
+             , dt
+             , CASE TO_CHAR(dt, 'D')
+                 WHEN '1' THEN '일요일' WHEN '2' THEN '월요일' WHEN '3' THEN '화요일'
+                 WHEN '4' THEN '수요일' WHEN '5' THEN '목요일' WHEN '6' THEN '금요일'
+                 WHEN '7' THEN '토요일' END AS yoil
+             , CASE TO_CHAR(dt, 'D')
+                 WHEN '1' THEN 'false'
+                 WHEN '7' THEN 'false'
+                 ELSE (CASE WHEN sys14_holiday_id IS NOT NULL THEN 'false' ELSE 'true' END)
+               END AS working_yn
+             , sys14_holiday_nm AS sys12_off_reason
+             , ''
+          FROM (SELECT generate_series(TO_DATE(#{startYmd}, 'yyyymmdd'),
+                                       TO_DATE(#{endYmd},   'yyyymmdd'), '1 day'::interval)::date AS dt) a
+               LEFT OUTER JOIN sys14_holiday ON (sys14_company_id = #{companyId} AND sys14_day = dt)
+    </insert>
+
+    <delete id="deleteByDay">
+        DELETE FROM sys12_calendar
+         WHERE sys12_company_id = #{companyId}
+           AND TO_CHAR(sys12_day, 'yyyymmdd') BETWEEN #{startYmd} AND #{endYmd}
+    </delete>
+
+</mapper>

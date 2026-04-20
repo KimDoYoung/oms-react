@@ -49,7 +49,7 @@
 ## 개발 환경
 
 ### DB서버
-- postgresql host : jskn.iptime.org, db : cms
+- postgresql host : jskn.iptime.org, db : omsdb
 - id/pw는 환경변수 : OMS_MODE의 값에 따라서 .env.{OMS_MODE} 에 기술되어 있음.
 
 

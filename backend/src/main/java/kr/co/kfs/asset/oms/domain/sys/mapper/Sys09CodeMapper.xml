@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.asset.oms.domain.sys.mapper.Sys09CodeMapper">
+
+    <resultMap id="mapper" type="kr.co.kfs.asset.oms.domain.sys.dto.Sys09CodeDto">
+        <id     column="sys09_code_id"      property="codeId"/>
+        <result column="sys09_company_id"   property="companyId"/>
+        <result column="sys09_code_kind_id" property="codeKindId"/>
+        <result column="sys09_code"         property="code"/>
+        <result column="sys09_name"         property="name"/>
+        <result column="sys09_seq"          property="seq"/>
+        <result column="sys09_apply_date"   property="applyDate"/>
+        <result column="sys09_close_date"   property="closeDate"/>
+        <result column="sys09_close_yn"     property="closeYn"/>
+        <result column="sys09_note"         property="note"/>
+        <result column="sys09_desc"         property="desc"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="mapper" parameterType="Long">
+        SELECT * FROM sys09_code WHERE sys09_code_id = #{codeId}
+    </select>
+
+    <select id="selectByCodeKindId" resultMap="mapper">
+        SELECT A.*,
+               (SELECT MIN(X.SYS09_APPLY_DATE) - INTERVAL '1 DAY'
+                  FROM SYS09_CODE X
+                 WHERE X.SYS09_COMPANY_ID  = A.SYS09_COMPANY_ID
+                   AND X.SYS09_CODE_KIND_ID = A.SYS09_CODE_KIND_ID
+                   AND X.SYS09_CODE         = A.SYS09_CODE
+                   AND X.SYS09_APPLY_DATE   > A.SYS09_APPLY_DATE) AS SYS09_LAST_DATE
+          FROM SYS09_CODE A
+               INNER JOIN sys08_code_kind ON sys08_code_kind_id = sys09_code_kind_id
+         WHERE A.SYS09_CODE_KIND_ID = #{codeKindId}
+           AND A.SYS09_COMPANY_ID   = CASE WHEN sys08_sys_yn = 'true' THEN 0 ELSE #{companyId} END
+           AND CONCAT(A.SYS09_CODE, A.SYS09_NAME) ILIKE '%' || #{searchText} || '%'
+         ORDER BY SYS09_SEQ
+    </select>
+
+    <select id="selectByStringComboBox" resultMap="mapper">
+        SELECT *
+          FROM sys09_code
+         WHERE sys09_company_id IN (0, #{companyId})
+           AND COALESCE(sys09_close_yn, 'false') = 'false'
+           AND sys09_code_kind_id = (SELECT sys08_code_kind_id FROM sys08_code_kind WHERE sys08_kind_cd = #{kindCode})
+         ORDER BY sys09_seq, sys09_code
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="codeId">
+        INSERT INTO sys09_code (sys09_company_id, sys09_code_kind_id, sys09_code, sys09_name, sys09_seq,
+                                sys09_note, sys09_close_yn, sys09_apply_date, sys09_close_date, sys09_desc)
+        VALUES (#{companyId}, #{codeKindId}, #{code}, #{name}, #{seq},
+                #{note}, #{closeYn}, #{applyDate}, #{closeDate}, #{desc})
+    </insert>
+
+    <update id="update">
+        UPDATE sys09_code
+           SET sys09_code       = #{code},
+               sys09_name       = #{name},
+               sys09_seq        = #{seq},
+               sys09_note       = #{note},
+               sys09_close_yn   = #{closeYn},
+               sys09_apply_date = #{applyDate},
+               sys09_close_date = #{closeDate},
+               sys09_desc       = #{desc}
+         WHERE sys09_code_id = #{codeId}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM sys09_code
+         WHERE sys09_code_kind_id = #{codeKindId}
+           AND sys09_company_id   = #{companyId}
+    </delete>
+
+</mapper>

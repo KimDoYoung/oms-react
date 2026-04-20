@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.co.kfs.asset.oms.domain.sys.mapper.Sys05UserRoleMapper">
+
+    <resultMap id="mapper" type="kr.co.kfs.asset.oms.domain.sys.dto.Sys05UserRoleDto">
+        <id     column="sys05_user_role_id" property="userRoleId"/>
+        <result column="sys05_user_id"      property="userId"/>
+        <result column="sys05_role_id"      property="roleId"/>
+        <result column="sys05_seq"          property="seq"/>
+        <result column="sys05_note"         property="note"/>
+        <result column="sys05_auth_org_id"  property="authOrgId"/>
+        <result column="sys05_auth_org_nm"  property="authOrgName"/>
+    </resultMap>
+
+    <select id="selectByRoleId" resultMap="mapper" parameterType="Long">
+        SELECT sys05_user_role.*,
+               f_org_nm(sys05_auth_org_id, f_sysdate()) AS sys05_auth_org_nm
+          FROM sys05_user_role
+         WHERE sys05_role_id = #{roleId}
+    </select>
+
+    <select id="selectByUserId" resultMap="mapper" parameterType="Long">
+        SELECT sys05_user_role.*,
+               f_org_nm(sys05_auth_org_id, f_sysdate()) AS sys05_auth_org_nm
+          FROM sys05_user_role
+         WHERE sys05_user_id = #{userId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="userRoleId">
+        INSERT INTO sys05_user_role (sys05_user_id, sys05_role_id, sys05_seq, sys05_note)
+        VALUES (#{userId}, #{roleId}, #{seq}, #{note})
+    </insert>
+
+    <delete id="delete" parameterType="Long">
+        DELETE FROM sys05_user_role WHERE sys05_user_role_id = #{userRoleId}
+    </delete>
+
+</mapper>
