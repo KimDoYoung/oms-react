@@ -8,7 +8,10 @@ import java.util.List;
 @Mapper
 public interface Sys01CompanyMapper {
     Sys01CompanyDto selectById(Long companyId);
+    Sys01CompanyDto selectByCompanyCode(String companyCode);
     List<Sys01CompanyDto> selectByAll();
     List<Sys01CompanyDto> selectByName(@Param("companyName") String companyName, @Param("useYn") String useYn);
+    int insert(Sys01CompanyDto dto);
     int update(Sys01CompanyDto dto);
+    int delete(Long companyId);
 }

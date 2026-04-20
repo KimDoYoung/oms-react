@@ -30,8 +30,6 @@ public class Sys07RoleMenuServiceImpl implements Sys07RoleMenuService {
     @Override
     @Transactional
     public int deleteByRoleId(Long roleId) {
-        // Since we don't have deleteByRoleId in mapper yet, we'll implement it if needed.
-        // Or we use existing delete(Long roleMenuId)
-        return 0; // Placeholder
+        return mapper.deleteByRoleId(roleId);
     }
 }

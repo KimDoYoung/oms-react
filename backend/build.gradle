@@ -59,12 +59,12 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
-// src/main/java 안의 XML mapper 파일을 빌드에 포함
+// src/main/java 안의 XML mapper 파일과 src/main/resources의 설정 파일을 모두 빌드에 포함
 sourceSets {
     main {
         resources {
-            srcDirs += 'src/main/java'
-            includes += '**/*.xml'
+            srcDirs = ['src/main/java', 'src/main/resources']
+            include '**/*.xml', '**/*.properties', '**/*.yml', '**/*.yaml'
         }
     }
 }
@@ -100,4 +100,9 @@ tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
 
 war {
     classpath = classpath.filter { !it.name.contains('devtools') }
+}
+
+bootRun {
+    systemProperties = System.properties
+    environment System.getenv().findAll { it.key.startsWith("OMS_") }
 }

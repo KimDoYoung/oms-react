@@ -31,6 +31,24 @@
          ORDER BY sys12_day
     </select>
 
+    <select id="selectByMonth" resultMap="mapper">
+        SELECT *
+          FROM sys12_calendar
+         WHERE sys12_company_id = #{companyId}
+           AND TO_CHAR(sys12_day, 'yyyy') = #{year}
+           AND TO_CHAR(sys12_day, 'MM') = #{month}
+         ORDER BY sys12_day
+    </select>
+
+    <select id="selectByDate" resultMap="mapper">
+        SELECT sys12_calendar.*, sys01_company_nm AS sys12_company_nm
+          FROM sys12_calendar
+               INNER JOIN sys01_company ON sys01_company_id = sys12_company_id
+         WHERE sys12_day = #{stdDate}::timestamp
+           AND sys12_company_id = #{companyId}
+         LIMIT 1
+    </select>
+
     <select id="selectByDay" resultMap="mapper">
         SELECT sys12_calendar.*, sys01_company_nm AS sys12_company_nm
           FROM sys12_calendar

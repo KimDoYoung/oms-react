@@ -9,7 +9,9 @@ import java.util.List;
 public interface Sys07RoleMenuMapper {
     Sys07RoleMenuDto selectById(Long roleMenuId);
     List<Sys07RoleMenuDto> selectByMenuId(@Param("companyId") Long companyId, @Param("menuId") Long menuId, @Param("roleName") String roleName);
+    List<Sys07RoleMenuDto> selectByRoleId(@Param("companyId") Long companyId, @Param("roleId") Long roleId);
     int insert(Sys07RoleMenuDto dto);
     int update(Sys07RoleMenuDto dto);
     int delete(Long roleMenuId);
+    int deleteByRoleId(Long roleId);
 }

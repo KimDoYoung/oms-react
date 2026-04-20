@@ -17,17 +17,19 @@ public class Sys12CalendarServiceImpl implements Sys12CalendarService {
     private final Sys12CalendarMapper mapper;
 
     @Override
-    public List<Sys12CalendarDto> getByYear(String year) {
-        return mapper.selectByYear(year);
+    public List<Sys12CalendarDto> getByYear(Long companyId, String year) {
+        return mapper.selectByYear(companyId, year, "%");
     }
 
     @Override
-    public List<Sys12CalendarDto> getByMonth(String yearMonth) {
-        return mapper.selectByMonth(yearMonth);
+    public List<Sys12CalendarDto> getByMonth(Long companyId, String yearMonth) {
+        String year = yearMonth.substring(0, 4);
+        String month = yearMonth.substring(4);
+        return mapper.selectByMonth(companyId, year, month);
     }
 
     @Override
-    public Sys12CalendarDto getByDate(String date) {
-        return mapper.selectByDate(date);
+    public Sys12CalendarDto getByDate(Long companyId, String date) {
+        return mapper.selectByDate(companyId, date);
     }
 }

@@ -34,6 +34,12 @@
          WHERE sys01_company_id = #{companyId}
     </select>
 
+    <select id="selectByCompanyCode" resultMap="mapper" parameterType="String">
+        SELECT *, CONCAT(sys01_zip_addr, ' ' || sys01_zip_detail) AS sys01_full_address
+          FROM sys01_company
+         WHERE sys01_loc_nm = #{companyCode}
+    </select>
+
     <select id="selectByAll" resultMap="mapper">
         SELECT *, CONCAT(sys01_zip_addr, ' ' || sys01_zip_detail) AS sys01_full_address
           FROM sys01_company
@@ -51,6 +57,11 @@
          ORDER BY sys01_company_id
     </select>
 
+    <insert id="insert" useGeneratedKeys="true" keyProperty="companyId">
+        INSERT INTO sys01_company (sys01_company_nm, sys01_loc_nm, sys01_biz_no, sys01_use_yn, sys01_note, sys01_office_tel_no, sys01_mobile_tel_no, sys01_email_addr, sys01_company_rep_nm)
+        VALUES (#{companyName}, #{locationName}, #{bizNo}, #{useYn}, #{note}, #{officeTelNo}, #{mobileTelNo}, #{emailAddress}, #{companyRepName})
+    </insert>
+
     <update id="update">
         UPDATE sys01_company
            SET sys01_company_nm    = #{companyName},
@@ -64,5 +75,9 @@
                sys01_company_rep_nm = #{companyRepName}
          WHERE sys01_company_id = #{companyId}
     </update>
+
+    <delete id="delete" parameterType="Long">
+        DELETE FROM sys01_company WHERE sys01_company_id = #{companyId}
+    </delete>
 
 </mapper>

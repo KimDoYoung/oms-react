@@ -27,6 +27,12 @@
            AND sys07_menu_id = #{menuId}
     </select>
 
+    <select id="selectByRoleId" resultMap="mapper">
+        SELECT *
+          FROM sys07_role_menu
+         WHERE sys07_role_id = #{roleId}
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="roleMenuId">
         INSERT INTO sys07_role_menu (sys07_role_id, sys07_menu_id, sys07_use_yn, sys07_note)
         VALUES (#{roleId}, #{menuId}, #{useYn}, #{note})
@@ -41,6 +47,10 @@
 
     <delete id="delete" parameterType="Long">
         DELETE FROM sys07_role_menu WHERE sys07_role_menu_id = #{roleMenuId}
+    </delete>
+
+    <delete id="deleteByRoleId" parameterType="Long">
+        DELETE FROM sys07_role_menu WHERE sys07_role_id = #{roleId}
     </delete>
 
 </mapper>
