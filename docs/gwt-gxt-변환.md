@@ -45,28 +45,28 @@ myOms/server/
 
 ```
 domain/sys/
-├── CodeKindController.java          ← @RestController
+├── Sys08CodeKindController.java          ← @RestController
 ├── dto/
-│   └── CodeKindDto.java             ← 요청/응답 데이터
+│   └── Sys08CodeKindDto.java             ← 요청/응답 데이터
 ├── service/
 │   ├── interfaces/
-│   │   └── CodeKindService.java     ← Service 인터페이스
-│   └── CodeKindServiceImpl.java     ← Service 구현체
+│   │   └── Sys08CodeKindService.java     ← Service 인터페이스
+│   └── Sys08CodeKindServiceImpl.java     ← Service 구현체
 └── mapper/
-    ├── CodeKindMapper.java          ← @Mapper 인터페이스
-    └── CodeKindMapper.xml           ← SQL (GWT XML 재활용)
+    ├── Sys08CodeKindMapper.java          ← @Mapper 인터페이스
+    └── Sys08CodeKindMapper.xml           ← SQL (GWT XML 재활용)
 ```
 
 ### 파일 대응표
 
 | GWT 원본 | Spring Boot 변환 | 비고 |
 |---------|----------------|------|
-| `Sys08_CodeKind.java` | `CodeKindController.java` | SELECT → GET, INSERT/UPDATE → POST/PUT, DELETE → DELETE |
-| `Sys08_CodeKind.java` | `CodeKindService.java` (interface) | 비즈니스 로직 분리 |
-| `Sys08_CodeKind.java` | `CodeKindServiceImpl.java` | 실제 구현 |
-| `Sys08_CodeKind.java` | `CodeKindMapper.java` | SqlSession 직접 호출 → @Mapper 인터페이스 |
-| `Sys08_CodeKindModel.java` | `CodeKindDto.java` | GWT 전송 모델 → 일반 DTO |
-| `sys08_code_kind.xml` | `CodeKindMapper.xml` | namespace만 변경, SQL은 재활용 |
+| `Sys08_CodeKind.java` | `Sys08CodeKindController.java` | SELECT → GET, INSERT/UPDATE → POST/PUT, DELETE → DELETE |
+| `Sys08_CodeKind.java` | `Sys08CodeKindService.java` (interface) | 비즈니스 로직 분리 |
+| `Sys08_CodeKind.java` | `Sys08CodeKindServiceImpl.java` | 실제 구현 |
+| `Sys08_CodeKind.java` | `Sys08CodeKindMapper.java` | SqlSession 직접 호출 → @Mapper 인터페이스 |
+| `Sys08_CodeKindModel.java` | `Sys08CodeKindDto.java` | GWT 전송 모델 → 일반 DTO |
+| `sys08_code_kind.xml` | `Sys08CodeKindMapper.xml` | namespace만 변경, SQL은 재활용 |
 
 ---
 
@@ -79,7 +79,7 @@ domain/sys/
 <mapper namespace="sys08_code_kind">
 
 <!-- Spring Boot: Mapper 인터페이스 FQCN -->
-<mapper namespace="kr.co.kfs.asset.oms.domain.sys.mapper.CodeKindMapper">
+<mapper namespace="kr.co.kfs.asset.oms.domain.sys.mapper.Sys08CodeKindMapper">
 ```
 
 ### 2. resultMap type 변경

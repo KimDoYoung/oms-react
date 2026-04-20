@@ -22,6 +22,12 @@
          WHERE sys02_user_id = #{userId}
     </select>
 
+    <select id="selectByLoginId" resultMap="mapper" parameterType="String">
+        SELECT *
+          FROM sys02_user
+         WHERE sys02_login_id = #{loginId}
+    </select>
+
     <select id="selectByCompanyId" resultMap="mapper" parameterType="Long">
         SELECT *
           FROM sys02_user
