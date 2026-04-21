@@ -54,8 +54,8 @@
          WHERE cm.sys03_company_id = #{companyId}
            AND cm.sys03_use_yn = 'true'
            AND (
-               /* admin 회사(1)이거나, Role이 매핑되어 있는 경우 */
-               #{companyId} = 1 
+               /* admin 회사(0)이거나, Role이 매핑되어 있는 경우 */
+               #{companyId} = 0 
                OR EXISTS (
                    SELECT 1 FROM sys07_role_menu rm
                    INNER JOIN sys05_user_role ur ON rm.sys07_role_id = ur.sys05_role_id

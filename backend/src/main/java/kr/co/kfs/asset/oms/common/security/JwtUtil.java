@@ -18,9 +18,9 @@ public final class JwtUtil {
     private final long refreshExpiration;
 
     public JwtUtil(
-            @Value("${jwt.secret}") String secret,
-            @Value("${jwt.expiration}") long accessExpiration,
-            @Value("${jwt.refresh-expiration}") long refreshExpiration
+            @Value("${jwt.secret:99e5c5ee0cce05e2308ad8697d02947cb18e1b80d2059ec2e0830ec2396a94878691c45c7e964c077ee2dbfb000ac526}") String secret,
+            @Value("${jwt.expiration:86400000}") long accessExpiration,
+            @Value("${jwt.refresh-expiration:604800000}") long refreshExpiration
     ) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.accessExpiration = accessExpiration;

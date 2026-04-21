@@ -74,10 +74,17 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         
-        // 기본 허용 오리진 리스트 생성
-        List<String> origins = new java.util.ArrayList<>(List.of(allowedOrigins.split(",")));
+        List<String> origins = new java.util.ArrayList<>();
+        if (allowedOrigins != null) {
+            for (String origin : allowedOrigins.split(",")) {
+                origins.add(origin.trim());
+            }
+        }
+        
         // 서브도메인 지원을 위한 패턴 추가
-        origins.add("http://*.localhost:5174");
+        if (!origins.contains("http://*.localhost:5174")) {
+            origins.add("http://*.localhost:5174");
+        }
         
         config.setAllowedOriginPatterns(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

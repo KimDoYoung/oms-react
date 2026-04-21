@@ -129,4 +129,9 @@ domain/sys/
 3. 3단게 메뉴체계를 react로 표현한 것이 있음
     -/home/kdy987/work/kiwi8/frontend/src/layout 을 참조
     - 위 layout을 그대로 따라가도 좋음.
-    
+
+/home/kdy987/workspace26/logs/OMS.log 는 asis에서의 동작을 나타내는 log임
+1. admin.localhost로 접속, admin subDomain으로 admin/1111 로그인
+2. 첫화면에  tabPanel.add(new Sys01_Tab_Company(), "시스템정보 관리"); 까지 수행하고 
+3. 로그아웃한 동작의 login.
+

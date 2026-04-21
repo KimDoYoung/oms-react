@@ -15,7 +15,7 @@ export interface MenuItem {
 }
 
 export async function fetchMenuTree(): Promise<MenuItem[]> {
-  const res = await api.get('/api/v1/menus/')
+  const res = await api.get('/api/v1/menus')
   const rawMenus = res.data.data.menus
 
   // Backend DTO (Sys06MenuDto) -> Frontend MenuItem 매핑

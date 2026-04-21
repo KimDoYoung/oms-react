@@ -28,18 +28,22 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        String token = resolveToken(request);
+        try {
+            String token = resolveToken(request);
 
-        if (StringUtils.hasText(token) && jwtUtil.isValid(token) && !isBlacklisted(token)) {
-            var claims = jwtUtil.parseClaims(token);
-            String loginId = claims.getSubject();
-            Long companyId = claims.get("companyId", Long.class);
-            Long userId = claims.get("userId", Long.class);
+            if (StringUtils.hasText(token) && jwtUtil.isValid(token) && !isBlacklisted(token)) {
+                var claims = jwtUtil.parseClaims(token);
+                String loginId = claims.getSubject();
+                Long companyId = claims.get("companyId", Long.class);
+                Long userId = claims.get("userId", Long.class);
 
-            OmsUserPrincipal principal = new OmsUserPrincipal(loginId, userId, companyId);
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(principal, null, List.of());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                OmsUserPrincipal principal = new OmsUserPrincipal(loginId, userId, companyId);
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(principal, null, List.of());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to process JWT: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);
@@ -54,6 +58,11 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     private boolean isBlacklisted(String token) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey(BLACKLIST_PREFIX + token));
+        try {
+            return Boolean.TRUE.equals(redisTemplate.hasKey(BLACKLIST_PREFIX + token));
+        } catch (Exception e) {
+            log.error("Redis connection error: {}", e.getMessage());
+            return false;
+        }
     }
 }
