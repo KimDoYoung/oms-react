@@ -4,6 +4,8 @@ import kr.co.kfs.asset.oms.common.security.JwtUtil;
 import kr.co.kfs.asset.oms.domain.auth.dto.LoginRequestDto;
 import kr.co.kfs.asset.oms.domain.auth.dto.TokenResponseDto;
 import kr.co.kfs.asset.oms.domain.auth.entity.User;
+import kr.co.kfs.asset.oms.domain.sys.dto.Sys26LoginDto;
+import kr.co.kfs.asset.oms.domain.sys.mapper.Sys26LoginMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -26,11 +28,12 @@ public class AuthServiceImpl implements AuthService {
     private final UserMapper userMapper;
     private final JwtUtil jwtUtil;
     private final StringRedisTemplate redisTemplate;
+    private final Sys26LoginMapper sys26LoginMapper;
 
     @Override
-    public TokenResponseDto login(LoginRequestDto request) {
+    public TokenResponseDto login(LoginRequestDto request, String ipAddress) {
         log.debug("Login attempt - Company: {}, User: {}", request.getCompanyCode(), request.getUserId());
-        
+
         User user = userMapper.findByUserId(request.getCompanyCode(), request.getUserId())
                 .orElseThrow(() -> {
                     log.warn("Login failed: user not found for {}/{}", request.getCompanyCode(), request.getUserId());
@@ -40,15 +43,12 @@ public class AuthServiceImpl implements AuthService {
         String inputPw = request.getUserPw();
         String dbPw = user.getUserPw() != null ? user.getUserPw().trim() : "";
 
-        log.debug("Password Check - Input: [{}], DB(Decrypted): [{}]", inputPw, dbPw);
-        log.debug("Length Check - Input len: {}, DB len: {}", inputPw.length(), dbPw.length());
-
-        // 1. DB에서 복호화되어 넘어온 평문과 직접 비교 (가장 우선)
-        // 2. 만약 복호화되지 않은 원본 해시일 경우를 대비해 MD5 비교도 유지
         if (inputPw.equals(dbPw) || verifyMd5(inputPw, dbPw)) {
             log.info("Login success: {} (Company: {})", user.getUserId(), request.getCompanyCode());
+            insertLoginHistory(user.getId(), ipAddress, "10");
         } else {
             log.warn("Login failed: password mismatch for user {}", request.getUserId());
+            insertLoginHistory(user.getId(), ipAddress, "02");
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다.");
         }
 
@@ -64,6 +64,19 @@ public class AuthServiceImpl implements AuthService {
         );
 
         return new TokenResponseDto(accessToken, refreshToken, user.getUserNm(), user.getCompanyId(), user.getId());
+    }
+
+    private void insertLoginHistory(Long personId, String ipAddress, String statusCode) {
+        try {
+            Sys26LoginDto dto = new Sys26LoginDto();
+            dto.setPersonId(personId);
+            dto.setIpAddress(ipAddress);
+            dto.setStatusCode(statusCode);
+            dto.setLoginMode("WEB");
+            sys26LoginMapper.insert(dto);
+        } catch (Exception e) {
+            log.warn("Failed to insert login history: {}", e.getMessage());
+        }
     }
 
     private boolean verifyMd5(String rawPassword, String encodedPassword) {

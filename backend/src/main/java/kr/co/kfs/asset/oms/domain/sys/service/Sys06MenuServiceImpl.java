@@ -35,33 +35,43 @@ public class Sys06MenuServiceImpl implements Sys06MenuService {
         List<Sys06MenuDto> allMenus = mapper.selectByUserId(companyId, userId);
         
         Map<Long, Sys06MenuDto> menuMap = new HashMap<>();
-        List<Sys06MenuDto> rootMenus = new ArrayList<>();
-        
-        // 1. Map으로 변환
         for (Sys06MenuDto menu : allMenus) {
             menu.setChildren(new ArrayList<>());
             menuMap.put(menu.getMenuId(), menu);
         }
         
-        // 2. 트리 구조 생성 및 레벨 설정
+        List<Sys06MenuDto> rootMenus = new ArrayList<>();
+        
+        // 1. 트리 구조 구성
         for (Sys06MenuDto menu : allMenus) {
             Long parentId = menu.getParentId();
             if (parentId == null || parentId == 0) {
-                menu.setLevel(1);
                 rootMenus.add(menu);
             } else {
                 Sys06MenuDto parent = menuMap.get(parentId);
                 if (parent != null) {
-                    menu.setLevel(parent.getLevel() + 1);
                     parent.getChildren().add(menu);
                 } else {
-                    menu.setLevel(1);
                     rootMenus.add(menu);
                 }
             }
         }
         
+        // 2. 재귀적으로 레벨 설정
+        for (Sys06MenuDto root : rootMenus) {
+            calculateLevel(root, 1);
+        }
+        
         return rootMenus;
+    }
+
+    private void calculateLevel(Sys06MenuDto menu, int level) {
+        menu.setLevel(level);
+        if (menu.getChildren() != null) {
+            for (Sys06MenuDto child : menu.getChildren()) {
+                calculateLevel(child, level + 1);
+            }
+        }
     }
 
     @Override

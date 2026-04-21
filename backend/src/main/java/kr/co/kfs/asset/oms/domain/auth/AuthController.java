@@ -1,5 +1,6 @@
 package kr.co.kfs.asset.oms.domain.auth;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import kr.co.kfs.asset.oms.domain.auth.dto.LoginRequestDto;
 import kr.co.kfs.asset.oms.domain.auth.dto.TokenResponseDto;
@@ -25,8 +26,11 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<TokenResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
-        return ResponseEntity.ok(authService.login(request));
+    public ResponseEntity<TokenResponseDto> login(@Valid @RequestBody LoginRequestDto request,
+                                                  HttpServletRequest httpRequest) {
+        String ipAddress = httpRequest.getHeader("X-Forwarded-For");
+        if (ipAddress == null || ipAddress.isBlank()) ipAddress = httpRequest.getRemoteAddr();
+        return ResponseEntity.ok(authService.login(request, ipAddress));
     }
 
     @PostMapping("/logout")

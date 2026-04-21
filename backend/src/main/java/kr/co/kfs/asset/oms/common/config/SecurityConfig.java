@@ -73,7 +73,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(allowedOrigins.split(",")));
+        
+        // 기본 허용 오리진 리스트 생성
+        List<String> origins = new java.util.ArrayList<>(List.of(allowedOrigins.split(",")));
+        // 서브도메인 지원을 위한 패턴 추가
+        origins.add("http://*.localhost:5174");
+        
+        config.setAllowedOriginPatterns(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

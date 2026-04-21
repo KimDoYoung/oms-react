@@ -17,14 +17,26 @@ public class Sys07RoleMenuServiceImpl implements Sys07RoleMenuService {
     private final Sys07RoleMenuMapper mapper;
 
     @Override
-    public List<Sys07RoleMenuDto> getByRoleId(Long companyId, Long roleId) {
-        return mapper.selectByRoleId(companyId, roleId);
+    public List<Sys07RoleMenuDto> getByRoleId(Long roleId) {
+        return mapper.selectByRoleId(roleId);
     }
 
     @Override
     @Transactional
     public int insert(Sys07RoleMenuDto dto) {
         return mapper.insert(dto);
+    }
+
+    @Override
+    @Transactional
+    public int update(Sys07RoleMenuDto dto) {
+        return mapper.update(dto);
+    }
+
+    @Override
+    @Transactional
+    public int delete(Long roleMenuId) {
+        return mapper.delete(roleMenuId);
     }
 
     @Override

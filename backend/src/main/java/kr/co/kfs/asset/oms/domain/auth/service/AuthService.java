@@ -4,7 +4,7 @@ import kr.co.kfs.asset.oms.domain.auth.dto.LoginRequestDto;
 import kr.co.kfs.asset.oms.domain.auth.dto.TokenResponseDto;
 
 public interface AuthService {
-    TokenResponseDto login(LoginRequestDto request);
+    TokenResponseDto login(LoginRequestDto request, String ipAddress);
     void logout(String accessToken);
     TokenResponseDto refresh(String refreshToken);
 }

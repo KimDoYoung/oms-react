@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import { AgGridReact } from 'ag-grid-react'
 import {
   type ColDef,

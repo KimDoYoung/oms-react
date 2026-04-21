@@ -82,6 +82,7 @@ myOms/server/
     - kova라는 회사의 admin 계정 admin_kova/1111을 만들어 주면
     - kova라는 회사로 즉 kova.localhost 로 접속 admin_Kova/1111로 로그인 한 후 그 회사의 사용자들과 role과 role에 따른 메뉴를 배정함.
 - **이 로그인 과정** 까지 그대로 순조롭게 변환되어서 수행되어야함.
+
 ---
 
 ## Spring Boot 변환 구조
@@ -101,3 +102,31 @@ domain/sys/
     ├── Sys08CodeKindMapper.java          ← @Mapper 인터페이스
     └── Sys08CodeKindMapper.xml           ← SQL (GWT XML 재활용)
 ```
+
+## 테스트 방법
+
+1. admin.localhost로 접속
+2. admin/1111로 로그인
+3. company kova1추가 (kova 이미 있음)\
+4. kova1에 OMS메뉴 사용 권한 부여
+5. kova1에 kova1_admin/1111 관리자 사원 추가.
+6. kova1_admin.localhost로 접속
+7. kova1에 사원 1/kalpa123! 추가, kova1에 사원 2/kalpa123! 추가
+8. kova1의 사원 1,2에 OMS 권한 부여 및 메뉴할당
+9. kova1.localhost접속 1/kalpa123!로 접속, 성공하고 메뉴가 나와야함.
+
+
+## DB 정보
+
+@파일 '.env.development' 참조.
+
+## 메뉴체계
+
+1. 메뉴는 3단계로 되어 있음.
+2. client/app/MainFrame 참조
+    - 1단계는 아이콘으로 sidebar에서 표현
+    - 2,3단계는 아코디언형태로 sidebar에서 표현
+3. 3단게 메뉴체계를 react로 표현한 것이 있음
+    -/home/kdy987/work/kiwi8/frontend/src/layout 을 참조
+    - 위 layout을 그대로 따라가도 좋음.
+    

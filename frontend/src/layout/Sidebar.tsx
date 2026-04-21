@@ -23,6 +23,14 @@ const ICON_MAP: Record<string, LucideIcon> = {
   'shopping-cart': ShoppingCart,
   'bar-chart-2': BarChart2,
   'settings': Settings,
+  'folder': LayoutDashboard,
+  'users': Settings,
+  'file-text': Settings,
+  'credit-card': ShoppingCart,
+  'calendar': Settings,
+  'database': Settings,
+  'briefcase': Settings,
+  'clipboard': Settings,
 }
 
 function getIcon(iconName: string | null): LucideIcon {
@@ -30,7 +38,7 @@ function getIcon(iconName: string | null): LucideIcon {
   return ICON_MAP[iconName] ?? Menu
 }
 
-function LeafItem({ menu, onSelect }: { menu: MenuItem; onSelect: () => void }) {
+function LeafItem({ menu, onSelect, inset = false }: { menu: MenuItem; onSelect: () => void; inset?: boolean }) {
   const openTab = useLayoutStore((s) => s.openTab)
 
   const handleClick = () => {
@@ -41,7 +49,8 @@ function LeafItem({ menu, onSelect }: { menu: MenuItem; onSelect: () => void }) 
   return (
     <button
       onClick={handleClick}
-      className="w-full text-left px-4 py-1.5 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-700 rounded-md transition-colors truncate"
+      className={`w-full text-left py-1.5 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded-md transition-colors truncate
+        ${inset ? 'pl-8 pr-4' : 'px-4'}`}
     >
       {menu.title}
       {menu.screen_no && (
@@ -63,18 +72,50 @@ function GroupItem({
   onSelect: () => void
 }) {
   return (
-    <div>
+    <div className="mb-0.5">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between px-3 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700 uppercase tracking-wide rounded-md hover:bg-gray-100 transition-colors"
+        className={`w-full flex items-center justify-between px-3 py-2 text-sm font-semibold rounded-md transition-all
+          ${open 
+            ? 'text-green-800 bg-green-50/50' 
+            : 'text-gray-600 hover:bg-gray-100'}`}
       >
-        <span>{menu.title}</span>
-        {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+        <span className="truncate">{menu.title}</span>
+        <div className="shrink-0 ml-2">
+          {open ? <ChevronDown size={14} className="text-green-600" /> : <ChevronRight size={14} className="text-gray-400" />}
+        </div>
       </button>
       {open && (
-        <div className="ml-1 flex flex-col gap-0.5 mb-1">
+        <div className="mt-0.5 flex flex-col gap-0.5">
           {menu.children.map((child) => (
-            <LeafItem key={child.id} menu={child} onSelect={onSelect} />
+            child.children && child.children.length > 0 ? (
+              <SubGroupItem key={child.id} menu={child} onSelect={onSelect} />
+            ) : (
+              <LeafItem key={child.id} menu={child} onSelect={onSelect} inset />
+            )
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SubGroupItem({ menu, onSelect }: { menu: MenuItem; onSelect: () => void }) {
+  const [open, setOpen] = useState(true)
+  
+  return (
+    <div>
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-2 px-4 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+      >
+        {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+        <span className="truncate">{menu.title}</span>
+      </button>
+      {open && (
+        <div className="flex flex-col gap-0.5">
+          {menu.children.map((child) => (
+            <LeafItem key={child.id} menu={child} onSelect={onSelect} inset />
           ))}
         </div>
       )}
@@ -95,7 +136,7 @@ function MenuPanel({
 }) {
   const handleSelect = pinned ? () => {} : onClose
 
-  const groups = menu.children.filter((c) => c.level === 2)
+  const groups = menu.children.filter((c) => c.children && c.children.length > 0)
   const groupIds = groups.map((g) => g.id)
   const [openIds, setOpenIds] = useState<Set<number>>(() => new Set(groupIds))
 
@@ -110,29 +151,30 @@ function MenuPanel({
   const collapseAll = () => setOpenIds(new Set())
 
   return (
-    <div className="w-52 bg-white border-r border-gray-200 flex flex-col overflow-hidden">
-      <div className="h-10 flex items-center justify-between px-3 bg-gray-50 border-b border-gray-200 shrink-0">
-        <span className="text-sm font-bold text-gray-700 truncate">{menu.title}</span>
-        <div className="flex items-center gap-0.5 shrink-0 ml-1">
+    <div className="w-60 bg-white border-r border-gray-200 flex flex-col overflow-hidden shadow-xl animate-in slide-in-from-left-2 duration-200">
+      <div className="h-12 flex items-center justify-between px-4 bg-gray-50/80 border-b border-gray-200 shrink-0 backdrop-blur-sm">
+        <span className="text-sm font-bold text-gray-800 truncate">{menu.title}</span>
+        <div className="flex items-center gap-1 shrink-0 ml-2">
           <button onClick={expandAll} title="모두 펼치기"
-            className="p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors">
-            <ChevronsDown size={13} />
+            className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors">
+            <ChevronsDown size={14} />
           </button>
           <button onClick={collapseAll} title="모두 접기"
-            className="p-1 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors">
-            <ChevronsUp size={13} />
+            className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors">
+            <ChevronsUp size={14} />
           </button>
+          <div className="w-px h-3 bg-gray-300 mx-0.5" />
           <button onClick={onTogglePin} title={pinned ? '고정 해제' : '사이드바 고정'}
-            className={`p-1 rounded transition-colors ${pinned
-              ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-100'
+            className={`p-1.5 rounded-md transition-colors ${pinned
+              ? 'text-blue-600 bg-blue-50 hover:text-blue-800'
               : 'text-gray-400 hover:text-gray-600 hover:bg-gray-200'}`}>
-            {pinned ? <Pin size={13} /> : <PinOff size={13} />}
+            {pinned ? <Pin size={14} /> : <PinOff size={14} />}
           </button>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1">
+      <div className="flex-1 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-gray-200">
         {menu.children.map((child) =>
-          child.level === 2 ? (
+          child.children && child.children.length > 0 ? (
             <GroupItem
               key={child.id}
               menu={child}
@@ -148,6 +190,7 @@ function MenuPanel({
     </div>
   )
 }
+
 
 export default function Sidebar() {
   const [activeId, setActiveId] = useState<number | null>(null)
@@ -181,7 +224,8 @@ export default function Sidebar() {
 
   return (
     <div className="flex h-full shrink-0">
-      <div className="w-12 flex flex-col items-center py-2 gap-1 bg-blue-900">
+      <div className="w-12 flex flex-col items-center py-2 gap-1"
+        style={{ background: 'linear-gradient(180deg, #1e3a5f 0%, #1e40af 50%, #1d4ed8 100%)' }}>
         {menus.map((menu) => {
           const Icon = getIcon(menu.icon)
           const isActive = activeId === menu.id
@@ -192,13 +236,13 @@ export default function Sidebar() {
               title={menu.title}
               className={`w-10 h-10 flex flex-col items-center justify-center rounded-lg transition-colors
                 ${isActive
-                  ? 'bg-blue-500 text-white'
-                  : 'text-blue-300 hover:bg-blue-700 hover:text-white'
+                  ? 'bg-green-600 text-white'
+                  : 'text-gray-400 hover:bg-gray-700 hover:text-white'
                 }`}
             >
               <Icon size={18} />
               {pinned && isActive && (
-                <span className="w-1 h-1 rounded-full bg-blue-300 mt-0.5" />
+                <span className="w-1 h-1 rounded-full bg-green-300 mt-0.5" />
               )}
             </button>
           )
