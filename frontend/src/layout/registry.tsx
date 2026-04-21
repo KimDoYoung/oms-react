@@ -11,16 +11,7 @@ import Sys07RoleMenuPage from '@/pages/Sys07RoleMenuPage'
 const registry: Record<string, React.ComponentType<{ screenNo?: string; title?: string }>> = {
   // 홈 (asis Sys01_Tab_Company 고정탭과 동일)
   'HOME': Sys01CompanyPage,
-  // [1000 주문]
-  '1001': PlaceholderPage,
-  '1002': PlaceholderPage,
-  '1003': PlaceholderPage,
-  // [2000 체결]
-  '2001': PlaceholderPage,
-  '2002': PlaceholderPage,
-  // [3000 잔고]
-  '3001': PlaceholderPage,
-  '3002': PlaceholderPage,
+  
   // [9000 시스템]
   '9001': Sys01CompanyPage,
   '9002': Sys02UserPage,
@@ -28,6 +19,15 @@ const registry: Record<string, React.ComponentType<{ screenNo?: string; title?: 
   '9004': Sys04RolePage,
   '9005': Sys05UserRolePage,
   '9007': Sys07RoleMenuPage,
+  
+  // 나머지는 모두 Placeholder
+  '1001': PlaceholderPage,
+  '1002': PlaceholderPage,
+  '1003': PlaceholderPage,
+  '2001': PlaceholderPage,
+  '2002': PlaceholderPage,
+  '3001': PlaceholderPage,
+  '3002': PlaceholderPage,
 }
 
 export default registry

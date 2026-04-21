@@ -7,20 +7,22 @@ import {
   AllCommunityModule,
   ModuleRegistry,
   themeAlpine,
-  colorSchemeDarkBlue,
 } from 'ag-grid-community'
 
 // Register modules
 ModuleRegistry.registerModules([AllCommunityModule])
 
-// Custom theme based on Alpine + OMS color palette
-const omsTheme = themeAlpine.withPart(colorSchemeDarkBlue).withParams({
-  accentColor: '#588157',
-  headerBackgroundColor: '#3A5A40',
-  headerTextColor: '#FFFFFF',
-  rowHoverColor: '#F0F7F0',
-  selectedRowBackgroundColor: '#D1E2D1',
-  oddRowBackgroundColor: '#F9FBF9',
+// Custom theme based on Alpine + neutral white/gray palette
+const omsTheme = themeAlpine.withParams({
+  accentColor: '#64748b',
+  headerBackgroundColor: '#475569',
+  headerTextColor: '#f8fafc',
+  rowHoverColor: '#f1f5f9',
+  selectedRowBackgroundColor: '#e2e8f0',
+  oddRowBackgroundColor: '#f8fafc',
+  backgroundColor: '#ffffff',
+  foregroundColor: '#334155',
+  borderColor: '#e2e8f0',
   fontFamily: 'inherit',
 })
 
