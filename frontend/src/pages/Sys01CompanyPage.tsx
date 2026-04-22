@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { sys01, type CompanyDto } from '@/services/sys01CompanyService'
+import { sys02, type UserDto } from '@/services/sys02UserService'
 import { Search, Plus, Trash2, Save, Building2, Info, Users, Copy, CheckSquare } from 'lucide-react'
 import BaseGrid from '@/components/common/BaseGrid'
-import Sys02UserPage from './Sys02UserPage'
 import { setStatusMessage } from '@/store/statusStore'
 
 export default function Sys01CompanyPage() {
@@ -18,7 +18,6 @@ export default function Sys01CompanyPage() {
     queryFn: () => sys01.search(searchName, useYnOnly ? 'true' : 'false'),
   })
 
-  // admin(0)을 위해 정확한 null 체크 (selectedId !== null)
   const { data: detail } = useQuery({
     queryKey: ['sys01-company', selectedId],
     queryFn: () => sys01.getById(selectedId!),
@@ -39,20 +38,11 @@ export default function Sys01CompanyPage() {
     { field: 'locationName', headerName: 'Sub-Domain', width: 130 },
     { field: 'bizNo', headerName: '사업자번호', width: 130 },
     { field: 'contractType', headerName: '계약유형', width: 100 },
-    { field: 'useYn', headerName: '사용', width: 80, cellRenderer: (p: any) => p.value === 'Y' || p.value === 'true' ? 'YES' : 'NO' },
-    { field: 'startDate', headerName: '설립일', width: 110 },
-    { field: 'officeTelNo', headerName: '대표전화', width: 130 },
+    { field: 'useYn', headerName: '사용', width: 70, cellRenderer: (p: any) => p.value === 'Y' || p.value === 'true' ? 'YES' : 'NO' },
+    { field: 'startDate', headerName: '설립일', width: 100 },
+    { field: 'officeTelNo', headerName: '대표전화', width: 120 },
     { field: 'note', headerName: '비고', flex: 1, minWidth: 200 },
   ]
-
-  const onRowSelected = (rows: any[]) => {
-    // 0을 값으로 받기 위해 체크
-    if (rows.length > 0) {
-      setSelectedId(rows[0].companyId)
-    } else {
-      setSelectedId(null)
-    }
-  }
 
   const copyId = () => {
     if (selectedId !== null) {
@@ -65,8 +55,8 @@ export default function Sys01CompanyPage() {
     <div className="flex flex-col h-full bg-slate-50 overflow-hidden">
       {/* Title Bar */}
       <div className="bg-white border-b border-slate-200 px-4 py-2 flex items-center shrink-0">
-         <Building2 size={16} className="text-slate-400 mr-2" />
-         <h1 className="text-sm font-bold text-slate-700">고객별 시스템정보 관리</h1>
+        <Building2 size={16} className="text-slate-400 mr-2" />
+        <h1 className="text-sm font-bold text-slate-700">고객별 시스템정보 관리</h1>
       </div>
 
       {/* Search & Tool Bar */}
@@ -75,8 +65,8 @@ export default function Sys01CompanyPage() {
           <div className="flex items-center gap-2 bg-slate-100 px-3 py-1 rounded border border-slate-200">
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">고객명</label>
             <div className="relative">
-              <input 
-                value={searchName} 
+              <input
+                value={searchName}
                 onChange={e => setSearchName(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && qc.invalidateQueries({ queryKey: ['sys01-companies'] })}
                 className="pl-7 pr-2 py-1 border border-slate-300 rounded text-xs outline-none focus:border-slate-500 w-44 bg-white"
@@ -85,18 +75,18 @@ export default function Sys01CompanyPage() {
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" size={12} />
             </div>
           </div>
-          
-          <label className="flex items-center gap-2 cursor-pointer select-none group">
+
+          <label className="flex items-center gap-2 cursor-pointer select-none">
             <div className={`w-3.5 h-3.5 border rounded flex items-center justify-center transition-colors ${useYnOnly ? 'bg-slate-600 border-slate-600' : 'bg-white border-slate-300'}`}>
-               {useYnOnly && <CheckSquare size={10} className="text-white" />}
-               <input type="checkbox" className="hidden" checked={useYnOnly} onChange={e => setUseYnOnly(e.target.checked)} />
+              {useYnOnly && <CheckSquare size={10} className="text-white" />}
+              <input type="checkbox" className="hidden" checked={useYnOnly} onChange={e => setUseYnOnly(e.target.checked)} />
             </div>
             <span className="text-[11px] font-bold text-slate-600">사용고객만 보기</span>
           </label>
 
           <div className="w-px h-4 bg-slate-300 mx-1" />
 
-          <button 
+          <button
             onClick={() => qc.invalidateQueries({ queryKey: ['sys01-companies'] })}
             className="px-4 py-1 bg-slate-700 hover:bg-slate-800 text-white rounded text-xs font-bold transition-colors shadow-sm"
           >
@@ -105,7 +95,7 @@ export default function Sys01CompanyPage() {
           <button className="px-4 py-1 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded text-xs font-bold transition-colors shadow-sm flex items-center gap-1">
             <Plus size={14} className="text-slate-500" /> 등록
           </button>
-          <button 
+          <button
             onClick={() => selectedId !== null && delMut.mutate(selectedId)}
             disabled={selectedId === null}
             className="px-4 py-1 bg-white border border-slate-300 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 text-slate-500 rounded text-xs font-bold transition-colors shadow-sm disabled:opacity-40 flex items-center gap-1"
@@ -114,28 +104,30 @@ export default function Sys01CompanyPage() {
           </button>
         </div>
         <div className="flex items-center gap-2 pr-2">
-           <span className="text-[10px] font-bold text-slate-400">
-             TOTAL: {list.length} 건
-           </span>
+          <span className="text-[10px] font-bold text-slate-400">TOTAL: {list.length} 건</span>
         </div>
       </div>
 
-      {/* Main Grid Section */}
+      {/* Main Grid */}
       <div className="flex-1 min-h-0 p-2">
-        <div className="h-full bg-white rounded border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          <div className="flex-1 ag-theme-alpine-oms">
-            <BaseGrid 
-              rowData={list} 
-              columnDefs={columns} 
-              onRowSelected={onRowSelected}
-              loading={isLoading}
-            />
-          </div>
+        <div className="h-full bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
+          <BaseGrid
+            rowData={list}
+            columnDefs={columns}
+            onRowSelected={rows => {
+              const id = rows.length > 0 ? (rows[0] as any).companyId : null
+              console.log('[Sys01] row selected:', rows[0] ?? null, '→ companyId:', id)
+              setSelectedId(id)
+            }}
+            loading={isLoading}
+            showFilter={false}
+            rowHeight={28}
+          />
         </div>
       </div>
 
-      {/* Detail Tab Section */}
-      <div className="h-[380px] p-2 pt-0 shrink-0">
+      {/* Detail Tabs */}
+      <div className="h-[320px] p-2 pt-0 shrink-0">
         <div className="h-full bg-white rounded border border-slate-200 shadow-sm overflow-hidden flex flex-col">
           <div className="bg-slate-100 border-b border-slate-200 flex px-1 shrink-0 items-center justify-between">
             <div className="flex">
@@ -144,14 +136,14 @@ export default function Sys01CompanyPage() {
               <TabButton active={activeTab === 'users'} onClick={() => setActiveTab('users')} icon={<Users size={14} />} label="고객별 관리자" />
             </div>
             {selectedId !== null && (
-               <div className="flex gap-2 pr-3">
-                 <button onClick={copyId} className="flex items-center gap-1 px-2 py-1 bg-white border border-slate-300 hover:bg-slate-50 text-slate-600 rounded text-[10px] font-bold transition-all shadow-sm">
-                    <Copy size={11} /> ID 복사
-                 </button>
-               </div>
+              <div className="flex gap-2 pr-3">
+                <button onClick={copyId} className="flex items-center gap-1 px-2 py-1 bg-white border border-slate-300 hover:bg-slate-50 text-slate-600 rounded text-[10px] font-bold shadow-sm">
+                  <Copy size={11} /> ID 복사
+                </button>
+              </div>
             )}
           </div>
-          <div className="flex-1 overflow-hidden bg-white relative">
+          <div className="flex-1 min-h-0 bg-white relative">
             {selectedId === null ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-300 gap-2">
                 <Building2 size={40} className="opacity-20" />
@@ -159,9 +151,21 @@ export default function Sys01CompanyPage() {
               </div>
             ) : (
               <div className="h-full">
-                {activeTab === 'info1' && <CompanyForm1 data={detail} onSave={() => qc.invalidateQueries({queryKey:['sys01-companies']})} />}
-                {activeTab === 'info2' && <CompanyForm2 data={detail} onSave={() => qc.invalidateQueries({queryKey:['sys01-companies']})} />}
-                {activeTab === 'users' && <Sys02UserPage companyId={selectedId} />}
+                {activeTab === 'info1' && (
+                  <CompanyPropGrid
+                    data={detail}
+                    fields={info1Fields}
+                    onSave={() => qc.invalidateQueries({ queryKey: ['sys01-companies'] })}
+                  />
+                )}
+                {activeTab === 'info2' && (
+                  <CompanyPropGrid
+                    data={detail}
+                    fields={info2Fields}
+                    onSave={() => qc.invalidateQueries({ queryKey: ['sys01-companies'] })}
+                  />
+                )}
+                {activeTab === 'users' && <CompanyUsersGrid companyId={selectedId} />}
               </div>
             )}
           </div>
@@ -171,14 +175,13 @@ export default function Sys01CompanyPage() {
   )
 }
 
+// ─── 탭 버튼 ─────────────────────────────────────────────────────────────────
 function TabButton({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
   return (
     <button
       onClick={onClick}
       className={`px-4 py-2 flex items-center gap-2 text-[11px] font-bold transition-all relative
-        ${active 
-          ? 'text-slate-900 bg-white border-x border-slate-200 -mb-px z-10' 
-          : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100/50'}`}
+        ${active ? 'text-slate-900 bg-white border-x border-slate-200 -mb-px z-10' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100/50'}`}
     >
       <span className={active ? 'text-slate-700' : 'text-slate-300'}>{icon}</span>
       {label}
@@ -187,16 +190,68 @@ function TabButton({ active, onClick, icon, label }: { active: boolean; onClick:
   )
 }
 
-function CompanyForm1({ data, onSave }: { data?: CompanyDto; onSave: () => void }) {
-  const [form, setForm] = useState<CompanyDto | null>(null)
-  const qc = useQueryClient()
+// ─── Property Grid 필드 정의 ─────────────────────────────────────────────────
+type FieldDef = { key: keyof CompanyDto; label: string; readonly?: boolean; highlight?: boolean }
 
-  if (data && (!form || form.companyId !== data.companyId)) {
-    setForm({ ...data })
-  }
+const info1Fields: FieldDef[] = [
+  { key: 'companyId',    label: '고객사 ID',  readonly: true },
+  { key: 'companyName',  label: '고객명' },
+  { key: 'locationName', label: 'Sub-Domain', highlight: true },
+  { key: 'bizNo',        label: '사업자번호' },
+  { key: 'contractType', label: '계약유형' },
+  { key: 'useYn',        label: '사용여부' },
+  { key: 'startDate',    label: '설립일' },
+  { key: 'closeDate',    label: '해지일' },
+  { key: 'assetYn',      label: '자산모듈' },
+  { key: 'advisYn',      label: '자문모듈' },
+  { key: 'pbsYn',        label: 'PBS모듈' },
+  { key: 'note',         label: '비고' },
+]
+
+const info2Fields: FieldDef[] = [
+  { key: 'officeTelNo',   label: '대표전화' },
+  { key: 'mobileTelNo',   label: '비상전화' },
+  { key: 'emailAddress',  label: '이메일' },
+  { key: 'companyRepName',label: '대표이사' },
+  { key: 'zipCode',       label: '우편번호',  readonly: true },
+  { key: 'zipAddress',    label: '도로명주소', readonly: true },
+  { key: 'zipDetail',     label: '상세주소',  readonly: true },
+  { key: 'fullAddress',   label: '전체주소',  readonly: true },
+]
+
+// ─── Property Grid 컴포넌트 ───────────────────────────────────────────────────
+type PropRow = { key: string; label: string; value: string; readonly: boolean; highlight: boolean }
+
+function CompanyPropGrid({
+  data,
+  fields,
+  onSave,
+}: {
+  data?: CompanyDto
+  fields: FieldDef[]
+  onSave: () => void
+}) {
+  const qc = useQueryClient()
+  const [rows, setRows] = useState<PropRow[]>([])
+
+  useEffect(() => {
+    if (!data) return
+    console.log('[CompanyPropGrid] data loaded:', data)
+    setRows(fields.map(f => ({
+      key: String(f.key),
+      label: f.label,
+      value: String(data[f.key] ?? ''),
+      readonly: !!f.readonly,
+      highlight: !!f.highlight,
+    })))
+  }, [data?.companyId])
 
   const saveMut = useMutation({
-    mutationFn: (dto: CompanyDto) => sys01.update(dto.companyId!, dto),
+    mutationFn: () => {
+      const dto = rows.reduce<any>((acc, r) => ({ ...acc, [r.key]: r.value }), {})
+      dto.companyId = data!.companyId
+      return sys01.update(data!.companyId!, dto as CompanyDto)
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['sys01-company', data?.companyId] })
       onSave()
@@ -204,100 +259,151 @@ function CompanyForm1({ data, onSave }: { data?: CompanyDto; onSave: () => void 
     },
   })
 
-  if (!form) return null
+  const columns = [
+    {
+      field: 'label',
+      headerName: '항목',
+      width: 130,
+      editable: false,
+      cellStyle: { background: '#f1f5f9', fontWeight: '700', color: '#475569', fontSize: '11px' },
+    },
+    {
+      field: 'value',
+      headerName: '값',
+      flex: 1,
+      editable: (p: any) => !p.data.readonly,
+      cellStyle: (p: any) => {
+        if (p.data.readonly) return { background: '#f8fafc', color: '#94a3b8' }
+        if (p.data.highlight) return { color: '#1e40af', fontWeight: '700', background: '#eff6ff' }
+        return null
+      },
+    },
+  ]
 
   return (
-    <div className="p-4 flex flex-col h-full bg-white">
-      <div className="flex justify-end mb-3">
-        <button 
-          onClick={() => saveMut.mutate(form)}
+    <div className="flex flex-col h-full">
+      <div className="flex justify-end px-3 py-1.5 border-b border-slate-100 bg-white shrink-0">
+        <button
+          onClick={() => saveMut.mutate()}
           disabled={saveMut.isPending}
-          className="flex items-center gap-1.5 px-4 py-1 bg-slate-700 hover:bg-slate-800 text-white rounded text-xs font-bold transition-all shadow-sm disabled:opacity-50"
+          className="flex items-center gap-1.5 px-4 py-1 bg-slate-700 hover:bg-slate-800 text-white rounded text-xs font-bold shadow-sm disabled:opacity-50"
         >
-          <Save size={14} /> 저장
+          <Save size={13} /> 저장
         </button>
       </div>
-      <div className="grid grid-cols-3 gap-x-6 gap-y-3 max-w-5xl">
-        <FormField label="고객사 ID" value={form.companyId} readOnly />
-        <FormField label="고객명" value={form.companyName} onChange={(v:any) => setForm({...form, companyName: v})} />
-        <FormField label="Sub-Domain" value={form.locationName} onChange={(v:any) => setForm({...form, locationName: v})} highlight />
-        <FormField label="사업자번호" value={form.bizNo} onChange={(v:any) => setForm({...form, bizNo: v})} />
-        <FormField label="계약유형" value={form.contractType} onChange={(v:any) => setForm({...form, contractType: v})} />
-        <FormSelect label="사용여부" value={form.useYn || 'Y'} options={[{l:'YES',v:'Y'}, {l:'NO',v:'N'}]} onChange={(v:any) => setForm({...form, useYn: v})} />
-        <FormField label="비고" value={form.note} onChange={(v:any) => setForm({...form, note: v})} fullWidth />
+      <div className="flex-1 min-h-0">
+        <BaseGrid
+          rowData={rows}
+          columnDefs={columns}
+          showFilter={false}
+          rowHeight={28}
+          onCellValueChanged={e =>
+            setRows(prev => prev.map(r => r.key === (e.data as PropRow).key ? { ...r, value: e.newValue ?? '' } : r))
+          }
+        />
       </div>
     </div>
   )
 }
 
-function CompanyForm2({ data, onSave }: { data?: CompanyDto; onSave: () => void }) {
-  const [form, setForm] = useState<CompanyDto | null>(null)
-  const qc = useQueryClient()
+// ─── 고객별 관리자 그리드 ─────────────────────────────────────────────────────
+type UserRow = UserDto & { _isNew?: boolean }
 
-  if (data && (!form || form.companyId !== data.companyId)) {
-    setForm({ ...data })
-  }
+function CompanyUsersGrid({ companyId }: { companyId: number }) {
+  const qc = useQueryClient()
+  const [rows, setRows] = useState<UserRow[]>([])
+  const [selectedRow, setSelectedRow] = useState<UserRow | null>(null)
+
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ['sys02-users', companyId],
+    queryFn: () => sys02.getByCompany(companyId),
+  })
+
+  useEffect(() => { setRows(users) }, [users])
 
   const saveMut = useMutation({
-    mutationFn: (dto: CompanyDto) => sys01.update(dto.companyId!, dto),
+    mutationFn: async (list: UserRow[]) => {
+      for (const row of list) {
+        const { _isNew, ...dto } = row
+        if (_isNew) await sys02.insert(dto)
+        else if (dto.userId) await sys02.update(dto.userId, dto)
+      }
+    },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['sys01-company', data?.companyId] })
-      onSave()
+      qc.invalidateQueries({ queryKey: ['sys02-users', companyId] })
       setStatusMessage('저장되었습니다.', 'success')
     },
   })
 
-  if (!form) return null
+  const delMut = useMutation({
+    mutationFn: (id: number) => sys02.delete(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['sys02-users', companyId] })
+      setSelectedRow(null)
+      setStatusMessage('삭제되었습니다.', 'success')
+    },
+  })
+
+  const handleAdd = () => {
+    setRows(prev => [...prev, { companyId, loginId: '', korNm: '', passwd: '', adminYn: 'Y', _isNew: true }])
+  }
+
+  const handleDelete = () => {
+    if (!selectedRow) return
+    if (selectedRow._isNew) {
+      setRows(prev => prev.filter(r => r !== selectedRow))
+      setSelectedRow(null)
+    } else if (selectedRow.userId) {
+      delMut.mutate(selectedRow.userId)
+    }
+  }
+
+  const columns = [
+    { field: 'korNm',   headerName: '이름',     width: 120, editable: true },
+    { field: 'loginId', headerName: '로그인ID', width: 150, editable: true },
+    { field: 'passwd',  headerName: '비밀번호', width: 120, editable: true,
+      cellRenderer: (p: any) => p.value ? '••••••' : <span className="text-slate-300 text-[10px]">미입력</span> },
+    { field: 'adminYn', headerName: '관리자', width: 80, editable: true },
+    { field: 'email',   headerName: '이메일', flex: 1, editable: true },
+  ]
 
   return (
-    <div className="p-4 flex flex-col h-full bg-white">
-      <div className="flex justify-end mb-3">
-        <button 
-          onClick={() => saveMut.mutate(form)}
-          disabled={saveMut.isPending}
-          className="flex items-center gap-1.5 px-4 py-1 bg-slate-700 hover:bg-slate-800 text-white rounded text-xs font-bold transition-all shadow-sm"
+    <div className="flex flex-col h-full">
+      <div className="flex items-center gap-2 px-3 py-1.5 border-b border-slate-100 bg-white shrink-0">
+        <button
+          onClick={handleAdd}
+          className="flex items-center gap-1 px-3 py-1 bg-white border border-slate-300 hover:bg-slate-50 text-slate-600 rounded text-xs font-bold shadow-sm"
         >
-          <Save size={14} /> 저장
+          <Plus size={13} /> 추가
+        </button>
+        <button
+          onClick={handleDelete}
+          disabled={!selectedRow}
+          className="flex items-center gap-1 px-3 py-1 bg-white border border-slate-300 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 text-slate-500 rounded text-xs font-bold shadow-sm disabled:opacity-40"
+        >
+          <Trash2 size={13} /> 삭제
+        </button>
+        <button
+          onClick={() => saveMut.mutate(rows)}
+          disabled={saveMut.isPending}
+          className="flex items-center gap-1.5 px-4 py-1 bg-slate-700 hover:bg-slate-800 text-white rounded text-xs font-bold shadow-sm disabled:opacity-50 ml-auto"
+        >
+          <Save size={13} /> 저장
         </button>
       </div>
-      <div className="grid grid-cols-2 gap-x-8 gap-y-3 max-w-3xl">
-        <FormField label="대표전화" value={form.officeTelNo} onChange={(v:any) => setForm({...form, officeTelNo: v})} />
-        <FormField label="비상전화" value={form.mobileTelNo} onChange={(v:any) => setForm({...form, mobileTelNo: v})} />
-        <FormField label="이메일" value={form.emailAddress} onChange={(v:any) => setForm({...form, emailAddress: v})} />
-        <FormField label="대표이사" value={form.companyRepName} onChange={(v:any) => setForm({...form, companyRepName: v})} />
-        <FormField label="주소" value={form.fullAddress} readOnly fullWidth />
+      <div className="flex-1 min-h-0">
+        <BaseGrid
+          rowData={rows}
+          columnDefs={columns}
+          showFilter={false}
+          rowHeight={28}
+          loading={isLoading}
+          onRowSelected={r => setSelectedRow((r[0] as UserRow) ?? null)}
+          onCellValueChanged={e =>
+            setRows(prev => prev.map((r, i) => i === e.rowIndex ? { ...r, [e.column.getColId()]: e.newValue } : r))
+          }
+        />
       </div>
-    </div>
-  )
-}
-
-function FormField({ label, value, onChange, readOnly = false, highlight = false, fullWidth = false }: any) {
-  return (
-    <div className={`flex flex-col gap-1 ${fullWidth ? 'col-span-full' : ''}`}>
-      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-tight ml-0.5">{label}</label>
-      <input 
-        value={value || ''} 
-        onChange={e => onChange?.(e.target.value)}
-        readOnly={readOnly}
-        className={`px-3 py-1.5 border rounded text-xs outline-none transition-all
-          ${readOnly ? 'bg-slate-50 text-slate-500 border-slate-200' : 'bg-white border-slate-300 focus:border-slate-500'}
-          ${highlight ? 'font-bold text-blue-800 bg-blue-50/20 border-blue-200' : ''}`}
-      />
-    </div>
-  )
-}
-
-function FormSelect({ label, value, options, onChange, fullWidth = false }: any) {
-  return (
-    <div className={`flex flex-col gap-1 ${fullWidth ? 'col-span-full' : ''}`}>
-      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-tight ml-0.5">{label}</label>
-      <select 
-        value={value || ''} 
-        onChange={e => onChange?.(e.target.value)}
-        className="px-3 py-1.5 border border-slate-300 bg-white rounded text-xs outline-none focus:border-slate-500 transition-all"
-      >
-        {options.map((o:any) => <option key={o.v} value={o.v}>{o.l}</option>)}
-      </select>
     </div>
   )
 }

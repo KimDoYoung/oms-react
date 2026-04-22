@@ -3,9 +3,25 @@ import api from './api'
 export interface CompanyDto {
   companyId?: number
   companyName: string
-  locNm: string
+  locationName?: string
+  bizNo?: string
+  startDate?: string
+  closeDate?: string
   useYn?: string
+  contractType?: string
   note?: string
+  menuYn?: string
+  zipCode?: string
+  zipAddress?: string
+  zipDetail?: string
+  fullAddress?: string
+  officeTelNo?: string
+  mobileTelNo?: string
+  emailAddress?: string
+  companyRepName?: string
+  assetYn?: string
+  advisYn?: string
+  pbsYn?: string
 }
 
 export const sys01 = {
