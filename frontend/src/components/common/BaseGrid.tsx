@@ -39,6 +39,7 @@ interface BaseGridProps<TData = unknown> {
   height?: string | number
   rowHeight?: number
   showFilter?: boolean
+  pagination?: boolean
 }
 
 /**
@@ -55,6 +56,7 @@ export default function BaseGrid<TData = unknown>({
   height = '100%',
   rowHeight,
   showFilter = true,
+  pagination = true,
 }: BaseGridProps<TData>) {
 
   const defaultColDef = useMemo<ColDef>(() => ({
@@ -87,7 +89,7 @@ export default function BaseGrid<TData = unknown>({
           }}
           onCellValueChanged={onCellValueChanged}
           rowSelection={{ mode: 'singleRow', enableClickSelection: true }}
-          pagination={true}
+          pagination={pagination}
           paginationPageSize={50}
           paginationPageSizeSelector={[20, 50, 100]}
           animateRows={true}
